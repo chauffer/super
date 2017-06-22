@@ -24,6 +24,7 @@ extensions = [
     'super.cogs.markov',
     'super.cogs.translate',
     'super.cogs.gif',
+    'super.cogs.ping',
 ]
 
 @bot.event
