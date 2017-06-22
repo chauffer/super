@@ -25,6 +25,7 @@ extensions = [
     'super.cogs.translate',
     'super.cogs.gif',
     'super.cogs.ping',
+    'super.cogs.eightball',
 ]
 
 @bot.event
