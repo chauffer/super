@@ -7,3 +7,5 @@ humanize
 uvloop
 aiogoogletrans
 ujson
+ics
+arrow

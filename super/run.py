@@ -26,6 +26,7 @@ extensions = [
     'super.cogs.gif',
     'super.cogs.ping',
     'super.cogs.eightball',
+    'super.cogs.f1',
 ]
 
 @bot.event
@@ -50,7 +51,7 @@ def main():
             print(f'Loaded {extension}')
         except Exception as e:
             print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
-    
+
     bot.run(settings.SUPER_DISCORD_TOKEN, bot=True)
 
 if __name__ == '__main__':
