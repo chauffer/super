@@ -21,19 +21,19 @@ class SuperRedis:
     async def write(self, slug, value):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            return await redis.connection.execute('set', slug, value)
+            return await redis.execute('set', slug, value)
 
     async def read(self, slug):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            return await redis.connection.execute('get', slug, encoding='utf-8')
+            return await redis.execute('get', slug, encoding='utf-8')
 
     async def lock(self, slug, time=600):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            locked = bool(await redis.connection.execute('setnx', slug, 1))
+            locked = bool(await redis.execute('setnx', slug, 1))
             if locked:
-                await redis.connection.execute('expire', slug, time * 1000)
+                await redis.execute('expire', slug, time * 1000)
         return locked
 
     def get_slug(self, ctx, command=None, id=None):
