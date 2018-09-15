@@ -8,7 +8,7 @@ class Gif:
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
-    
+
     def __exit__(self):
         self.session.close()
 
@@ -49,7 +49,7 @@ class Gif:
         nsfw = text.startswith('nsfw ')
         if nsfw:
             text.replace('nsfw ', '', 1)
-        url = await self._get_url(text)
+        url = await self._get_url(text, nsfw)
         await self.bot.say(f'**{text}**: {url}')
 
 
