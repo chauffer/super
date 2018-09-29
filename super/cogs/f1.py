@@ -13,19 +13,16 @@ from super import utils
 class F1:
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession()
         self.calendar = None
 
-    def __exit__(self):
-        self.session.close()
-
     async def _get_calendar(self):
-        async with self.session.get(
-            'https://www.f1calendar.com/download/f1-calendar_p1_p2_p3_q_gp.ics',
-            params={'t': int(time.time())},
-            timeout=5,
-        ) as resp:
-            data = await resp.text()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                'https://www.f1calendar.com/download/f1-calendar_p1_p2_p3_q_gp.ics',
+                params={'t': int(time.time())},
+                timeout=5,
+            ) as resp:
+                data = await resp.text()
         return ics.Calendar(data)
 
     async def get_events(self, num, ongoing=True):
