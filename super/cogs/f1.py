@@ -28,25 +28,35 @@ class F1:
             data = await resp.text()
         return ics.Calendar(data)
 
-    @commands.command(no_pm=True, pass_context=True)
-    async def f1ns(self, ctx):
-        """.f1ns - Formula 1 next session."""
-        utils.send_typing(self, ctx.message.channel)
-
+    async def get_events(self, num, ongoing=True):
         if not self.calendar:
             self.calendar = await self._get_calendar()
 
         now = arrow.Arrow.now()
-        lines = []
+        lines, lines_on = [], []
         for event in self.calendar.events[::-1]:
             if event.end < now:
                 continue
-            if event.end > now > event.begin:
-                lines.append(f'**{event.name}** ongoing')
+            if event.end > now > event.begin and ongoing:
+                lines_on.append(f'**{event.name}** ongoing')
             else:
                 lines.append(f'**{event.name}** {event.begin.humanize()}')
+            if len(lines) >= num:
                 break
-        await self.bot.say('\n'.join(lines))
+        return lines_on + lines
+
+    @commands.command(no_pm=True, pass_context=True)
+    async def f1ns(self, ctx):
+        """Formula 1 next session"""
+        utils.send_typing(self, ctx.message.channel)
+        await self.bot.say('\n'.join(await self.get_events(1)))
+
+    @commands.command(no_pm=True, pass_context=True)
+    async def f1ls(self, ctx):
+        """Formula 1 list sessions"""
+        utils.send_typing(self, ctx.message.channel)
+        await self.bot.say('\n'.join(await self.get_events(10)))
+
 
 def setup(bot):
     bot.add_cog(F1(bot))
