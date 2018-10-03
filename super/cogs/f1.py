@@ -3,8 +3,9 @@ import time
 import traceback
 
 import aiohttp
-import arrow
 import ics
+from ago import human
+from arrow import Arrow
 
 from discord.ext import commands
 from super import utils
@@ -29,7 +30,7 @@ class F1:
         if not self.calendar:
             self.calendar = await self._get_calendar()
 
-        now = arrow.Arrow.now()
+        now = Arrow.now()
         lines, lines_on = [], []
         for event in self.calendar.events[::-1]:
             if event.end < now:
@@ -37,7 +38,10 @@ class F1:
             if event.end > now > event.begin and ongoing:
                 lines_on.append(f'**{event.name}** ongoing')
             else:
-                lines.append(f'**{event.name}** {event.begin.humanize()}')
+                lines.append('**{0}** {1}'.format(
+                    event.name,
+                    human(event.begin.timestamp, precision=2)
+                ))
             if len(lines) >= num:
                 break
         return lines_on + lines
