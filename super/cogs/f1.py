@@ -38,9 +38,10 @@ class F1:
             if event.end > now > event.begin and ongoing:
                 lines_on.append(f'**{event.name}** ongoing')
             else:
-                lines.append('**{0}** {1}'.format(
+                lines.append('**{0}** {1}, {2}'.format(
                     event.name,
-                    human(event.begin.timestamp, precision=2)
+                    human(event.begin.timestamp, precision=2),
+                    event.begin.strftime('%d %b @ %H:%M'),
                 ))
             if len(lines) >= num:
                 break
