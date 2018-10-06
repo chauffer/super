@@ -9,6 +9,7 @@ from arrow import Arrow
 
 from discord.ext import commands
 from super import utils
+from super.settings import SUPER_TIMEZONE
 
 
 class F1:
@@ -38,10 +39,11 @@ class F1:
             if event.end > now > event.begin and ongoing:
                 lines_on.append(f'**{event.name}** ongoing')
             else:
+                local_time = event.begin.to(SUPER_TIMEZONE)
                 lines.append('**{0}** {1}, {2}'.format(
                     event.name,
-                    human(event.begin.timestamp, precision=2),
-                    event.begin.strftime('%d %b @ %H:%M'),
+                    human(local_time.timestamp, precision=2),
+                    local_time.strftime('%d %b @ %H:%M'),
                 ))
             if len(lines) >= num:
                 break
