@@ -20,7 +20,7 @@ class F1:
     async def _get_calendar(self):
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                'https://www.f1calendar.com/download/f1-calendar_p1_p2_p3_q_gp.ics',
+                os.getenv('SUPER_F1_CALENDAR', 'https://calendar.google.com/calendar/ical/ekqk1nbdusr1baon1ic42oeeik%40group.calendar.google.com/public/basic.ics'),
                 params={'t': int(time.time())},
                 timeout=5,
             ) as resp:
