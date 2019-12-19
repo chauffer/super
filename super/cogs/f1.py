@@ -33,7 +33,7 @@ class F1:
 
         now = Arrow.now()
         lines, lines_on = [], []
-        for event in self.calendar.events[::-1]:
+        for event in self.calendar.events:
             if event.end < now:
                 continue
             if event.end > now > event.begin and ongoing:
