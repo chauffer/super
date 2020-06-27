@@ -27,7 +27,7 @@ class markov:
     async def chat(self, ctx):
         utils.send_typing(self, ctx.message.channel)
         brain = self._get_brain(ctx.message.author.server.id)
-        about = ' '.join(ctx.message.content.split(' ').pop(0))
+        about = ctx.message.content.split(' ', 1)[1]
         await self.bot.say(brain.reply(about))
 
 
