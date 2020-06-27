@@ -27,6 +27,7 @@ extensions = [
     'super.cogs.ping',
     'super.cogs.eightball',
     'super.cogs.f1',
+    'super.cogs.astro',
 ]
 
 @bot.event
