@@ -46,7 +46,8 @@ class markov:
         brain = self._get_brain(message.author.server.id)
 
         mention = r'<@!?' + self.bot.user.id + '>'
-        mentioned = bool(self.bot.user.id in message.mentions)
+
+        mentioned = any(self.bot.user.id == m.id for m in message.mentions)
 
         learned_message = re.sub(mention, 'Super', message.content).strip()
         brain.learn(learned_message)
