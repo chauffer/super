@@ -37,6 +37,14 @@ class markov:
 
         return False
 
+    def sanitize_out(self, message):
+        replacements = {
+            '@here': '**@**here',
+            '@everyone': '**@**everyone',
+        }
+        for k, v in replacements.items():
+            message = message.replace(k, v)
+        return message
 
     async def on_message(self, message):
         if message.author.bot:  # Ignore bots
@@ -53,7 +61,7 @@ class markov:
         brain.learn(learned_message)
 
         if mentioned or await self.should_reply(message.channel.id):
-            reply = brain.reply(message.content)
+            reply = self.sanitize_out(brain.reply(message.content))
             await self.bot.send_message(message.channel, reply)
 
 
