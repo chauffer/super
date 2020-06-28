@@ -10,4 +10,3 @@ SUPER_PREFIX = os.getenv('SUPER_PREFIX', '.')
 
 SUPER_TIMEZONE = os.getenv('SUPER_TZ', 'Europe/Rome')
 SUPER_ADMINS = os.getenv('SUPER_ADMINS', '').split(',')
-SUPER_CLIENTID = os.getenv('SUPER_CLIENTID', '310544568103731200')

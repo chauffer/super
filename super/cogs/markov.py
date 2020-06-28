@@ -5,6 +5,7 @@ from super import settings, utils
 from super.utils import R
 import random
 import asyncio
+import re
 
 class markov:
     def __init__(self, bot):
@@ -43,9 +44,12 @@ class markov:
         if message.content.startswith(settings.SUPER_PREFIX): # Ignore commands
             return
         brain = self._get_brain(message.author.server.id)
-        brain.learn(message.content)
 
-        mentioned = bool(f'<@{settings.SUPER_CLIENTID}>' in message.content)
+        mention = r'<@!?' + self.bot.user.id + '>'
+        mentioned = bool(self.bot.user.id in message.mentions)
+
+        learned_message = re.sub(mention, 'Super', message.content).strip()
+        brain.learn(learned_message)
 
         if mentioned or await self.should_reply(message.channel.id):
             reply = brain.reply(message.content)

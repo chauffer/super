@@ -10,7 +10,7 @@ from . import settings
 from .utils import R
 
 
-description = "Super is Yet Another Yet Another Discord Bot. github.com/chauffer/super"
+description = "<https://github.com/chauffer/super|super>"
 
 
 bot = commands.Bot(
