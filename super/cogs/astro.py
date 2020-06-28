@@ -21,7 +21,7 @@ class Astro:
              "aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra",
              "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"
         ]
-        self.api = 'http://sandipbgt.com/theastrologer/api/horoscope/{sunsign}/{when}'
+        self.api = 'http://horoscope-api.herokuapp.com/horoscope/{when}/{sunsign}'
 
     async def _get_sunsign(self, sunsign, when):
         async with aiohttp.ClientSession() as session:
@@ -34,7 +34,7 @@ class Astro:
 
     @commands.command(no_pm=True, pass_context=True)
     async def astro(self, ctx):
-        """.astro <sign> [today|tomorrow|yesterday] - Daily dose of bullshit"""
+        """.astro <sign> [today|week|month|year] - Daily dose of bullshit"""
         utils.send_typing(self, ctx.message.channel)
         message = ctx.message.content.split(' ')
 
@@ -45,13 +45,13 @@ class Astro:
             return
 
         when = message[2] if len(message) >= 3 and \
-               message[2] in ('yesterday', 'today', 'tomorrow') else 'today'
+               message[2] in ('today', 'week', 'month', 'year') else 'today'
 
         horoscope = await self._get_sunsign(sunsign, when)
         embed = Embed(
             title=f'{when}\'s horoscope for {sunsign}',
             type=kj,
-            description=horoscope['horoscope'].replace(horoscope['credit'], '')
+            description=horoscope['horoscope'],
         )
         await self.bot.send_message(ctx.message.channel, embed=embed)
 
