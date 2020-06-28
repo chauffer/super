@@ -45,7 +45,9 @@ class markov:
         brain = self._get_brain(message.author.server.id)
         brain.learn(message.content)
 
-        if await self.should_reply(message.channel.id):
+        mentioned = bool(f'<@{settings.SUPER_CLIENTID}>' in message.content)
+
+        if mentioned or await self.should_reply(message.channel.id):
             reply = brain.reply(message.content)
             await self.bot.send_message(message.channel, reply)
 
