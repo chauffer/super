@@ -9,3 +9,4 @@ SUPER_REDIS_PORT = int(os.getenv('SUPER_REDIS_PORT', '6379'))
 SUPER_PREFIX = os.getenv('SUPER_PREFIX', '.')
 
 SUPER_TIMEZONE = os.getenv('SUPER_TZ', 'Europe/Rome')
+SUPER_ADMINS = os.getenv('SUPER_ADMINS', '').split(',')
