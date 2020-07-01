@@ -15,9 +15,7 @@ class F1(commands.Cog):
     async def _get_calendar(self):
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                    SUPER_F1_CALENDAR,
-                    params={'t': int(time.time())},
-                    timeout=5,
+                SUPER_F1_CALENDAR, params={"t": int(time.time())}, timeout=5,
             ) as resp:
                 data = await resp.text()
         return ics.Calendar(data)
@@ -32,14 +30,16 @@ class F1(commands.Cog):
             if event.end < now:
                 continue
             if event.end > now > event.begin and ongoing:
-                lines_on.append(f'**{event.name}** ongoing')
+                lines_on.append(f"**{event.name}** ongoing")
             else:
                 local_time = event.begin.to(SUPER_TIMEZONE)
-                lines.append('**{0}** {1}, {2}'.format(
-                    event.name,
-                    human(local_time.timestamp, precision=2),
-                    local_time.strftime('%d %b @ %H:%M'),
-                ))
+                lines.append(
+                    "**{0}** {1}, {2}".format(
+                        event.name,
+                        human(local_time.timestamp, precision=2),
+                        local_time.strftime("%d %b @ %H:%M"),
+                    )
+                )
             if len(lines) >= num:
                 break
         return lines_on + lines
@@ -48,14 +48,14 @@ class F1(commands.Cog):
     async def f1ns(self, ctx):
         """Formula 1 next session"""
         async with ctx.message.channel.typing():
-            events = '\n'.join(await self.get_events(1))
+            events = "\n".join(await self.get_events(1))
             return await ctx.message.channel.send(events)
 
     @commands.command(no_pm=True, pass_context=True)
     async def f1ls(self, ctx):
         """Formula 1 list sessions"""
         async with ctx.message.channel.typing():
-            events = '\n'.join(await self.get_events(10))
+            events = "\n".join(await self.get_events(10))
             return await ctx.message.channel.send(events)
 
 

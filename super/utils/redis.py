@@ -7,7 +7,7 @@ conn = None
 
 class SuperRedis:
     def __init__(self, host=None, port=6379):
-        print('SuperRedis: connecting...')
+        print("SuperRedis: connecting...")
         self.host, self.port = host, port
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect())
@@ -16,24 +16,24 @@ class SuperRedis:
         self.pool = await aioredis.create_pool(
             (self.host, self.port), minsize=50, maxsize=100,
         )
-        print('SuperRedis: connected!')
+        print("SuperRedis: connected!")
 
     async def write(self, slug, value):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            return await redis.execute('set', slug, value)
+            return await redis.execute("set", slug, value)
 
     async def read(self, slug):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            return await redis.execute('get', slug, encoding='utf-8')
+            return await redis.execute("get", slug, encoding="utf-8")
 
     async def lock(self, slug, time=600):
         slug = self.slug_to_str(slug)
         with await self.pool as redis:
-            locked = bool(await redis.execute('setnx', slug, 1))
+            locked = bool(await redis.execute("setnx", slug, 1))
             if locked:
-                await redis.execute('expire', slug, time * 1000)
+                await redis.execute("expire", slug, time * 1000)
         return locked
 
     def get_slug(self, ctx, command=None, id=None):
@@ -48,5 +48,5 @@ class SuperRedis:
     @staticmethod
     def slug_to_str(slug):
         if type(slug) == list:
-            slug = ':'.join([str(o) for o in slug])
-        return 'super:' + slug
+            slug = ":".join([str(o) for o in slug])
+        return "super:" + slug
