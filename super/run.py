@@ -35,18 +35,6 @@ async def on_ready():
     print("Super ready!")
 
 
-@bot.event
-async def on_message(message):
-    slug = [
-        message.author.id,
-        message.id,
-    ]
-    locked = await R.lock(slug)
-    if not locked:
-        return
-    await bot.process_commands(message)
-
-
 def main():
     for extension in extensions:
         try:
