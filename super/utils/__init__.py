@@ -1,6 +1,5 @@
 from .. import settings
 
-from .chat import send_typing
 from .redis import SuperRedis
 from .eightball import eightball_options
 
