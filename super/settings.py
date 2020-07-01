@@ -10,3 +10,5 @@ SUPER_PREFIX = os.getenv('SUPER_PREFIX', '.')
 
 SUPER_TIMEZONE = os.getenv('SUPER_TZ', 'Europe/Rome')
 SUPER_ADMINS = os.getenv('SUPER_ADMINS', '').split(',')
+
+SUPER_F1_CALENDAR = os.getenv('SUPER_F1_CALENDAR', 'https://calendar.google.com/calendar/ical/ekqk1nbdusr1baon1ic42oeeik%40group.calendar.google.com/public/basic.ics')
