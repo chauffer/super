@@ -68,7 +68,7 @@ class Markov(commands.Cog):
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
             about = ctx.message.content.split(' ', 1)[1]
-            await ctx.message.channel.send(brain.reply(about))
+            return await ctx.message.channel.send(brain.reply(about))
 
     @commands.command(no_pm=True, pass_context=True)
     async def replyrate(self, ctx):
