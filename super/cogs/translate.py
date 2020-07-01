@@ -36,7 +36,9 @@ class Translate(commands.Cog):
                 src=config['from'],
                 dest=config['to'],
             )
-            await ctx.message.channel.send(f'**{out.src}**→**{out.dest}** - {out.text}')
+            return await ctx.message.channel.send(
+                f'**{out.src}**→**{out.dest}** - {out.text}'
+            )
 
 
 def setup(bot):

@@ -48,13 +48,15 @@ class F1(commands.Cog):
     async def f1ns(self, ctx):
         """Formula 1 next session"""
         async with ctx.message.channel.typing():
-            await ctx.message.channel.send('\n'.join(await self.get_events(1)))
+            events = '\n'.join(await self.get_events(1))
+            return await ctx.message.channel.send(events)
 
     @commands.command(no_pm=True, pass_context=True)
     async def f1ls(self, ctx):
         """Formula 1 list sessions"""
         async with ctx.message.channel.typing():
-            await ctx.message.channel.send('\n'.join(await self.get_events(10)))
+            events = '\n'.join(await self.get_events(10))
+            return await ctx.message.channel.send(events)
 
 
 def setup(bot):

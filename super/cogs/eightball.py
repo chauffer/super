@@ -11,9 +11,8 @@ class Eightball(commands.Cog):
         """Eightball"""
         async with ctx.message.channel.typing():
             if len(ctx.message.content.split(' ')) == 1:
-                await ctx.message.channel.send("I can't read minds. :disappointed:")
-                return
-            await ctx.message.channel.send(random.choice(utils.eightball_options))
+                return await ctx.message.channel.send("I can't read minds. :disappointed:")
+            return await ctx.message.channel.send(random.choice(utils.eightball_options))
 
 def setup(bot):
     bot.add_cog(Eightball(bot))

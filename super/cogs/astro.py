@@ -31,9 +31,10 @@ class Astro(commands.Cog):
             if len(message) >= 2 and message[1].lower() in self.sunsigns:
                 sunsign = message[1]
             else:
-                await ctx.message.channel.send('\n'.join(['**Command**: astro <sign> [today|week|month|year]',
-                                                          '**Signs**: ' + ', '.join(self.sunsigns)]))
-                return
+                return await ctx.message.channel.send('\n'.join(
+                    ['**Command**: astro <sign> [today|week|month|year]',
+                    '**Signs**: ' + ', '.join(self.sunsigns)]
+                ))
 
             when = message[2] if len(message) >= 3 and \
                    message[2] in ('today', 'week', 'month', 'year') else 'today'
@@ -44,7 +45,7 @@ class Astro(commands.Cog):
                 type='rich',
                 description=horoscope['horoscope'],
             )
-            await ctx.message.channel.send(embed=embed)
+            return await ctx.message.channel.send(embed=embed)
 
 
 def setup(bot):

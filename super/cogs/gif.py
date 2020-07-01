@@ -35,7 +35,7 @@ class Gif(commands.Cog):
         async with ctx.message.channel.typing():
             text = ctx.message.content.split(' ', 1)[1]
             url = await self._get_url(text)
-            await ctx.message.channel.send(f'**{text}**: {url}')
+            return await ctx.message.channel.send(f'**{text}**: {url}')
 
 
 def setup(bot):

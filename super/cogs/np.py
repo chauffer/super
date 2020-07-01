@@ -74,7 +74,7 @@ class Np(commands.Cog):
                 await ctx.message.channel.send(f'Set an username first, e.g.: **{settings.SUPER_PREFIX}np joe**')
                 return
             lastfm_data = await self.lastfm(lfm=lfm)
-            await ctx.message.channel.send(lastfm_data['formatted'])
+            return await ctx.message.channel.send(lastfm_data['formatted'])
 
     @commands.command(no_pm=True, pass_context=True, name='wp')
     async def wp(self, ctx):
@@ -92,7 +92,7 @@ class Np(commands.Cog):
                     message.append(data['formatted'])
             if len(message) == 1:
                 message.append('Nobody. :disappointed:')
-            await ctx.message.channel.send('\n'.join(message))
+            return await ctx.message.channel.send('\n'.join(message))
 
 
 def setup(bot):
