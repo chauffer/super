@@ -53,7 +53,7 @@ def main():
         except Exception as e:
             print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
 
-    bot.run(settings.SUPER_DISCORD_TOKEN, bot=True)
+    bot.run(settings.SUPER_DISCORD_TOKEN)
 
 if __name__ == '__main__':
     main()

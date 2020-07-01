@@ -1,12 +1,9 @@
 from discord.ext import commands
 from aiogoogletrans import Translator
 from aiogoogletrans.constants import LANGUAGES
-from super import utils
-
-import aiogoogletrans
 
 
-class Translate:
+class Translate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -19,7 +16,7 @@ class Translate:
     async def t(self, ctx):
         """.t [from lang] [to lang] <sentence>. Auto detects by default."""
         words = ctx.message.content.split(' ')[1:]
-        if not len(words):
+        if not words:
             return
 
         config = {'from': 'auto', 'to': 'en'}
@@ -33,13 +30,13 @@ class Translate:
             config[setting] = value
             del words[0:2]
 
-        utils.send_typing(self, ctx.message.channel)
-        out = await Translator().translate(
-            text=' '.join(words),
-            src=config['from'],
-            dest=config['to'],
-        )
-        await self.bot.say(f'**{out.src}**→**{out.dest}** - {out.text}')
+        async with ctx.message.channel.typing():
+            out = await Translator().translate(
+                text=' '.join(words),
+                src=config['from'],
+                dest=config['to'],
+            )
+            await ctx.message.channel.send(f'**{out.src}**→**{out.dest}** - {out.text}')
 
 
 def setup(bot):

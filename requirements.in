@@ -6,7 +6,6 @@ aioredis
 humanize
 uvloop
 aiogoogletrans
-ujson
 ics
 arrow
 ago

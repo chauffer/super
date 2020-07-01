@@ -38,7 +38,7 @@ class SuperRedis:
 
     def get_slug(self, ctx, command=None, id=None):
         slug = [
-            ctx.message.author.server.id,
+            ctx.message.author.guild.id,
             id or ctx.message.author.id,
         ]
         if command:
@@ -48,5 +48,5 @@ class SuperRedis:
     @staticmethod
     def slug_to_str(slug):
         if type(slug) == list:
-            slug = ':'.join(slug)
+            slug = ':'.join([str(o) for o in slug])
         return 'super:' + slug
