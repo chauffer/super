@@ -23,18 +23,11 @@ class Markov(commands.Cog):
 
         replyrate = await R.read(slug)
         if not replyrate:
-            return False
+            return 0
         return int(replyrate)
 
     async def should_reply(self, channel):
-        replyrate = await self._get_replyrate(channel)
-        if not replyrate:
-            return False
-
-        if random.randint(0, 100) < replyrate:
-            return True
-
-        return False
+        return random.randint(0, 100) < await self._get_replyrate(channel):
 
     def sanitize_out(self, message):
         replacements = {
