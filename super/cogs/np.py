@@ -8,6 +8,8 @@ from super.utils import R
 
 
 class Np(commands.Cog):
+    """Last.fm Songs"""
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
@@ -64,7 +66,7 @@ class Np(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def np(self, ctx):
-        """.np - Now playing song from last.fm"""
+        """**.np** - Now playing song from last.fm"""
         async with ctx.message.channel.typing():
             words = ctx.message.content.split(" ")
             slug = R.get_slug(ctx, "np")
@@ -84,7 +86,7 @@ class Np(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True, name="wp")
     async def wp(self, ctx):
-        """.wp - Now playing, for the whole server"""
+        """**.wp** - Now playing, for the whole server"""
         async with ctx.message.channel.typing():
             message = ["Users playing music in this server:"]
             tasks = []
