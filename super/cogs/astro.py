@@ -2,7 +2,7 @@ import time
 import aiohttp
 from discord.ext import commands
 from discord import Embed
-
+from super.utils import fuz
 
 class Astro(commands.Cog):
     def __init__(self, bot):
@@ -21,12 +21,13 @@ class Astro(commands.Cog):
             "aquarius",
             "pisces",
         ]
+        self.times = ('today', 'week', 'month', 'year')
         self.api = "http://horoscope-api.herokuapp.com/horoscope/{when}/{sunsign}"
 
     async def _get_sunsign(self, sunsign, when):
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                self.api.format(sunsign=sunsign.lower(), when=when.lower()),
+                self.api.format(sunsign=sunsign, when=when),
                 params={"t": int(time.time())},
                 timeout=5,
             ) as resp:
@@ -38,26 +39,14 @@ class Astro(commands.Cog):
         async with ctx.message.channel.typing():
             message = ctx.message.content.split(" ")
 
-            if len(message) >= 2 and message[1].lower() in self.sunsigns:
-                sunsign = message[1]
+            if len(message) >= 2:
+                sunsign = fuz(message[1], self.sunsigns, threshold=1)
             else:
-                return await ctx.message.channel.send(
-                    "\n".join(
-                        [
-                            "**Command**: astro <sign> [today|week|month|year]",
-                            "**Signs**: " + ", ".join(self.sunsigns),
-                        ]
-                    )
-                )
+                return await ctx.message.channel.send(".astro <sign> [**today**|week|month|year]")
 
-            when = (
-                message[2]
-                if len(message) >= 3
-                and message[2] in ("today", "week", "month", "year")
-                else "today"
-            )
-
+            when = fuz(message[2] if len(message) >= 3 else "today", self.times, 'today')
             horoscope = await self._get_sunsign(sunsign, when)
+            print('ssw', sunsign, when)
             embed = Embed(
                 title=f"{when}'s horoscope for {sunsign}",
                 type="rich",
