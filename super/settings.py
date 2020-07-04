@@ -15,3 +15,5 @@ SUPER_F1_CALENDAR = os.getenv(
     "SUPER_F1_CALENDAR",
     "https://calendar.google.com/calendar/ical/ekqk1nbdusr1baon1ic42oeeik%40group.calendar.google.com/public/basic.ics",
 )
+
+SUPER_HELP_COLOR = hex(int(os.getenv("SUPER_HELP_COLOR", "0xc53a91")), 16)

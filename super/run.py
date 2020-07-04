@@ -13,9 +13,8 @@ from .utils import R
 
 description = "<https://github.com/chauffer/super|super>"
 
-
 bot = commands.Bot(
-    command_prefix=settings.SUPER_PREFIX, description=description, pm_help=None,
+    command_prefix=settings.SUPER_PREFIX, description=description, pm_help=None
 )
 
 extensions = [
@@ -27,6 +26,7 @@ extensions = [
     "super.cogs.eightball",
     "super.cogs.f1",
     "super.cogs.astro",
+    "super.cogs.help",
 ]
 
 

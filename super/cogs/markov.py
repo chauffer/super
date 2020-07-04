@@ -8,6 +8,8 @@ from super.utils import R
 
 
 class Markov(commands.Cog):
+    """Random message"""
+
     def __init__(self, bot):
         self.bot = bot
         os.makedirs("/data/cobe/", exist_ok=True)
@@ -59,7 +61,7 @@ class Markov(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def chat(self, ctx):
-        """.chat <text> - Reply to a message"""
+        """**.chat** <text> - Reply to a message"""
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
             about = ctx.message.content.split(" ", 1)[1]
