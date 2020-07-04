@@ -9,7 +9,7 @@ class Eightball(commands.Cog):
 
     @commands.command(pass_context=True, name="8ball")
     async def eightball(self, ctx):
-        """Eightball"""
+        """.8ball Question - For life's most troubling issues"""
         async with ctx.message.channel.typing():
             if len(ctx.message.content.split(" ")) == 1:
                 return await ctx.message.channel.send(

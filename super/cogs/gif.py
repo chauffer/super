@@ -29,7 +29,7 @@ class Gif(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def gif(self, ctx):
-        """.gif query - Gives you a random gif."""
+        """.gif <query> - random gif"""
         async with ctx.message.channel.typing():
             text = ctx.message.content.split(" ", 1)[1]
             url = await self._get_url(text)

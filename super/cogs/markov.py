@@ -27,7 +27,7 @@ class Markov(commands.Cog):
         return int(replyrate)
 
     async def should_reply(self, channel):
-        return random.randint(0, 100) < await self._get_replyrate(channel):
+        return random.randint(0, 100) < await self._get_replyrate(channel)
 
     def sanitize_out(self, message):
         replacements = {
@@ -59,6 +59,7 @@ class Markov(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def chat(self, ctx):
+        """.chat <text> - Reply to a message"""
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
             about = ctx.message.content.split(" ", 1)[1]

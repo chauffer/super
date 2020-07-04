@@ -8,7 +8,7 @@ class Ping(commands.Cog):
 
     @commands.command(pass_context=True)
     async def ping(self, ctx):
-        """Shows how long it takes for the bot to send & edit a message"""
+        """.ping - Benchmark for the bot to send & edit a message"""
         before = time.time()
         msg = await ctx.message.channel.send("1/3 .")
         await msg.edit(content="2/3 ..")
