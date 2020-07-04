@@ -4,6 +4,8 @@ from aiogoogletrans.constants import LANGUAGES
 
 
 class Translate(commands.Cog):
+    """Translator"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -13,7 +15,7 @@ class Translate(commands.Cog):
 
     @commands.command(no_pm=False, pass_context=True, name="t")
     async def t(self, ctx):
-        """.t [from lang] [to lang] <sentence>. Auto detects by default."""
+        """**.t** [from lang] [to lang] <sentence>. Auto detects by default."""
         words = ctx.message.content.split(" ")[1:]
         if not words:
             return

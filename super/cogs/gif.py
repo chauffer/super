@@ -4,6 +4,8 @@ from discord.ext import commands
 
 
 class Gif(commands.Cog):
+    """Gif"""
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
@@ -29,7 +31,7 @@ class Gif(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def gif(self, ctx):
-        """.gif <query> - random gif"""
+        """**.gif** <query> - random gif"""
         async with ctx.message.channel.typing():
             text = ctx.message.content.split(" ", 1)[1]
             url = await self._get_url(text)
