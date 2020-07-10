@@ -57,6 +57,9 @@ class Markov(commands.Cog):
 
         if mentioned or await self.should_reply(message.channel.id):
             reply = self.sanitize_out(brain.reply(message.content))
+            if reply == message.content:
+                return
+
             return await message.channel.send(reply)
 
     @commands.command(no_pm=True, pass_context=True)
