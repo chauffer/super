@@ -3,10 +3,8 @@ services:
   app:
     build: .
     image: chauffer/super
-    environment:
-      SUPER_LASTFM_API_KEY: x
-    # env_file:
-    #   - .env
+    env_file:
+      - .env
     volumes:
       - .:/app
       - ./data:/data

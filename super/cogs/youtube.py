@@ -17,7 +17,6 @@ class Song:
         video = pafy.new(url)
         self.url = url
         self.title = video.title
-        #self.description = video.description
     
     def __str__(self):
         return self.url
@@ -28,14 +27,12 @@ class Youtube(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.state = 'INACTIVE'
         self.cur_song = None
-        self.voice_client = None
-        self.audio_source = None
-        self.context = None
+        self.queue = []
 
 
     async def download_song(self):
+        """ Download song using youtube_dl """
         ydl_opts = {
             'outtmpl': 'data/music/%(title)s.%(ext)s',
             'format': 'bestaudio/best',
@@ -50,39 +47,46 @@ class Youtube(commands.Cog):
             ydl.download([self.cur_song.url])
 
 
-    async def fetch_next_song(self):
+    async def fetch_next_song(self, after):
+        """ Remove downloaded song """
         os.remove(f'data/music/{self.cur_song.title}.mp3')
-        self.state = 'WAITING'
 
 
-
-    async def _play_song(self, ctx):
-        if self.state == 'WAITING':
-            self.state = 'PLAYING'
-            await self.download_song()
-            self.audio_source = discord.FFmpegPCMAudio(f'data/music/{self.cur_song.title}.mp3')
-            self.voice_client.play(self.audio_source, after=self.fetch_next_song)
-
+    async def _play_song(self, song, voice_client):
+        """ Download and play the song """
+        self.cur_song = song
+        await self.download_song()
+        audio_source = discord.FFmpegPCMAudio(f'data/music/{self.cur_song.title}.mp3')
+        voice_client.play(audio_source, after=self.fetch_next_song)
     
-    @commands.command(no_pm=True, pass_context=True)
-    async def join(self, ctx):
-        """**.join** - joins the default voice channel"""
-        for channel in ctx.guild.voice_channels:
-            if channel.name == 'Music':
-                await channel.connect()
-                self.voice_client = ctx.voice_client
-                self.state = 'WAITING'
-                break
+
+    async def _get_voice_client(self, ctx):
+        """ Fetch voice client for current server """
+        for client in self.bot.voice_clients:
+            if client.guild == ctx.guild:
+                return client
+        return None
+
+
+    async def _init_play_song(self, song, voice_client):
+        """ If no song is playing or is not paused, play a new one, otherwise append to queue """
+        if voice_client.is_playing() or voice_client.is_paused():
+            self.queue.append(song)
+        else:
+            await self._play_song(song, voice_client)
 
 
     @commands.command(no_pm=True, pass_context=True)
     async def play(self, ctx):
         """**.play** <url> - play Youtube video"""
-        self.context = ctx
-        if self.state != 'WAITING' and self.state != 'PLAYING':
-            return await ctx.message.channel.send('Not in a vc! Use .join command first.')
-        self.cur_song = Song(ctx.message.content.split(" ", 1)[1])
-        await self._play_song(ctx)
+        voice_client = self._get_voice_client
+        if voice_client is None:
+            if ctx.message.author.voice.channel == None:
+                return await ctx.message.channel.send('Join a vc first.')
+            voice_client = await ctx.message.author.voice.channel.join()
+
+        song = Song(ctx.message.content.split(" ", 1)[1])
+        await self._init_play_song(song, voice_client)
         
 
     @commands.command(no_pm=True, pass_context=True)
