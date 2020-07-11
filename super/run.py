@@ -4,6 +4,8 @@ import aiohttp
 import json
 import asyncio
 import uvloop
+import ctypes
+import ctypes.util
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
@@ -27,6 +29,7 @@ extensions = [
     "super.cogs.f1",
     "super.cogs.astro",
     "super.cogs.help",
+    "super.cogs.youtube",
 ]
 
 
@@ -36,6 +39,9 @@ async def on_ready():
 
 
 def main():
+    discord.opus.load_opus('libopus.so.0')
+    if not discord.opus.is_loaded():
+        print("OPUS NOT LOADED")
     for extension in extensions:
         try:
             bot.load_extension(extension)
