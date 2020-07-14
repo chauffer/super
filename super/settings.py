@@ -17,4 +17,3 @@ SUPER_F1_CALENDAR = os.getenv(
 )
 
 SUPER_HELP_COLOR = int(os.getenv("SUPER_BOT_COLOR", "#c53a91").strip("#"), 16)
-SUPER_AUDIO_PATH = os.getenv("SUPER_AUDIO_PATH", os.getcwd() + '/audio')

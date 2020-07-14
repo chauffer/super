@@ -1,23 +1,13 @@
-from __future__ import unicode_literals
+import os
+import traceback
+from contextlib import suppress
+
+import discord
 from discord.ext import commands
 from discord.utils import get
-import discord
-import os
-from super.settings import SUPER_AUDIO_PATH
-import youtube_dl
 from fuzzywuzzy import process
-
-
-discord.opus.load_opus('libopus.so.0')
-
-class Song:
-    """Song object"""
-    def __init__(self,url):
-        self.url = url
-        self.title = None
-    
-    def __str__(self):
-        return self.url
+from super.utils import get_user_voice_channel
+from super.utils.voice import Servers, Song
 
 
 class Youtube(commands.Cog):
@@ -25,12 +15,14 @@ class Youtube(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.cur_song = None
         self.commands = {
-            'pause': (self.pause, ('pause')),
-            'play': (self.resume, ('play', 'resume')),
+            "pause": (self.pause, ("pause",)),
+            "play": (self.resume, ("play", "resume", "start")),
+            "leave": (self.leave, ("leave", "quit")),
+            "skip": (self.skip, ("next", "skip")),
+            "volume": (self.volume, ("volume", "v")),
         }
-
+        self.S = Servers(self.bot)
 
     @property
     def words(self):
@@ -40,115 +32,99 @@ class Youtube(commands.Cog):
                 words[word] = command
         return words
 
-
     def word(self, badword):
-        result = process.extract(badword, self.words.keys(), limit=1)
-        return [v for k, v in self.words.items() if k == result[0][0]][0]
-
+        result = process.extract(badword, self.words.keys(), limit=30)
+        return next(iter([v for k, v in self.words.items() if k == result[0][0]]), None)
 
     def command(self, word):
         return self.commands[word][0]
 
-
-    async def download_song(self):
-        """ Download song using youtube_dl """
-        ydl_opts = {
-            'outtmpl': 'data/music/%(title)s.%(ext)s',
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'verbose': True,
-        }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            metadata = ydl.extract_info(self.cur_song.url, download=True)
-            self.cur_song.title = ydl.prepare_filename(metadata)
-
-
-    def fetch_next_song(self, after):
-        """ Remove downloaded song """
-        os.remove(self.cur_song.title.replace('.webm', '.mp3'))
-
-
-    async def _play_song(self, song, voice_client):
-        """ Download and play the song """
-        self.cur_song = song
-        await self.download_song()
-        audio_source = discord.FFmpegPCMAudio(self.cur_song.title.replace('.webm', '.mp3'))
-        voice_client.play(audio_source, after=self.fetch_next_song)
-    
-
-    def _get_voice_client(self, ctx):
-        """ Fetch voice client for current server """
-        for client in self.bot.voice_clients:
-            if client.guild == ctx.guild:
-                return client
-        return None
-
-
-    def _get_user_voice_channel(self, ctx):
-        """ Get command author voice channel """
-        for member in ctx.guild.members:
-            if member == ctx.message.author:
-                if member.voice != None:
-                    return member.voice.channel
-                break
-        return None
-
-
-    async def _init_play_song(self, song, voice_client):
-        """ If no song is playing or is not paused, play a new one, otherwise append to queue """
-        if voice_client.is_playing() or voice_client.is_paused():
-            self.queue.append(song)
-        else:
-            await self._play_song(song, voice_client)
-
-
-    async def resume(self, ctx):
+    async def resume(self, ctx, server, message):
         """**.yt resume** - resume current song"""
-        voice_client = self._get_voice_client(ctx)
-        if voice_client is None:
-            return await ctx.message.channel.send('There are no stopped songs.')
-        await voice_client.resume()
+        if not server.voice_client:
+            return await ctx.message.channel.send("nothing is playing")
 
+        return server.resume()
 
-    async def pause(self, ctx):
+    async def pause(self, ctx, server, message):
         """**.yt pause** - pause current song"""
-        voice_client = self._get_voice_client(ctx)
-        if voice_client is None:
-            return await ctx.message.channel.send('Not playing any song.')
-        await voice_client.pause()
 
+        if not server.voice_client:
+            return await ctx.message.channel.send("nothing is playing")
+
+        return server.pause()
+
+    async def leave(self, ctx, server, message):
+        try:
+            return await self.S[ctx.message.guild.id].disconnect()
+        except:
+            return await ctx.message.channel.send(
+                ":thinking:\n " + traceback.format_exc()
+            )
+
+    async def volume(self, ctx, server, message):
+        if not message:
+            return await ctx.message.channel.send(
+                "volume: **" + str(int(server.voice_client.source.volume * 100)) + "**"
+            )
+        try:
+            volume = int(message[0])
+            assert 0 <= volume <= 100
+            server.voice_client.source.volume = volume / 100
+        except:
+            return await ctx.message.channel.send(
+                ":thinking:\n " + traceback.format_exc()
+            )
+
+    async def skip(self, ctx, server, message):
+        try:
+            server.voice_client.stop()
+            await server.play_next()
+            return await ctx.message.channel.send("skipped")
+        except:
+            return await ctx.message.channel.send(
+                ":thinking:\n " + traceback.format_exc()
+            )
 
     @commands.command(no_pm=True, pass_context=True)
     async def yt(self, ctx):
         """**.yt** <url> - play Youtube video"""
-        subcommand = ctx.message.content.split(" ", 1)[1]
+        message = ctx.message.content.split(" ")
+        server = self.S[ctx.message.guild.id]
 
-        if 'https' not in subcommand:
-            command = self.command(self.word(subcommand))
-            return await command
+        if not message[1:]:
+            return await ctx.message.channel.send(
+                """yotoob
+            **.yt <youtubelink>** to add songs
+            **.yt pause** to pause
+            **.yt <play|resume|start>** to play
+            **.yt leave** to leave the channel
+            **.yt skip** to skip to the next song
+            **.yt volume 0-100** to change volume
+            """
+            )
 
-        voice_channel = self._get_user_voice_channel(ctx)
-        if voice_channel is None:
-            return await ctx.message.channel.send('Join a Voice Channel first.')
-        await voice_channel.connect()
+        if not get_user_voice_channel(ctx):
+            return await ctx.message.channel.send("join a voice channel first...")
 
-        song = Song(subcommand)
-        await self._init_play_song(song, self._get_voice_client(ctx))
+        if server.is_connected and server.channel != get_user_voice_channel(ctx):
+            return await ctx.message.channel.send("join MY voice channel....")
 
+        if message[1].startswith("http"):
+            if not server.is_connected:
+                server.channel = get_user_voice_channel(ctx)
+                await server.connect()
+            await server.queue(Song(message[1], server, ctx.message.author))
+            return await ctx.message.channel.send("Queued...")
 
-    @commands.command(no_pm=True, pass_context=True)
-    async def leave(self,ctx):
-        """**.leave** - leaves the voice channel"""
-        self.context = None
-        for client in self.bot.voice_clients:
-            if client.guild == ctx.guild:
-                self.state = 'INACTIVE'
-                return await client.disconnect()
+        good_word = self.word(message[1])
+        if good_word != message[1]:
+            await ctx.message.channel.send(
+                f"{message[2]}? assuming you meant _{good_word}_..."
+            )
+        return await self.command(good_word)(ctx, server, message[2:])
 
 
 def setup(bot):
+    discord.opus.load_opus("libopus.so.0")
     bot.add_cog(Youtube(bot))
