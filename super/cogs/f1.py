@@ -12,28 +12,24 @@ class F1(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.calendar = None
+        self._calendar = None
 
-    async def _get_calendar(self):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                SUPER_F1_CALENDAR, params={"t": int(time.time())}, timeout=5,
-            ) as resp:
-                data = await resp.text()
-        return ics.Calendar(data)
+    async def calendar(self):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(SUPER_F1_CALENDAR, timeout=5) as resp:
+                    self._calendar = ics.Calendar(await resp.text())
+                    return self._calendar
+        except:
+            return self._calendar
 
     async def get_events(self, num, ongoing=True):
-        if not self.calendar:
-            self.calendar = await self._get_calendar()
-
-        now = Arrow.now()
         lines, lines_on = [], []
-        for event in self.calendar.events:
-            if event.end < now:
-                continue
-            if event.end > now > event.begin and ongoing:
+        calendar = await self.calendar()
+        for event in sorted(calendar.events, key=lambda x: x.begin):
+            if event.end > Arrow.now() > event.begin and ongoing:
                 lines_on.append(f"**{event.name}** ongoing")
-            else:
+            elif event.begin > Arrow.now():
                 local_time = event.begin.to(SUPER_TIMEZONE)
                 lines.append(
                     "**{0}** {1}, {2}".format(
@@ -50,15 +46,13 @@ class F1(commands.Cog):
     async def f1ns(self, ctx):
         """**.f1ns** - Formula 1 next session"""
         async with ctx.message.channel.typing():
-            events = "\n".join(await self.get_events(1))
-            return await ctx.message.channel.send(events)
+            return await ctx.message.channel.send("\n".join(await self.get_events(1)))
 
     @commands.command(no_pm=True, pass_context=True)
     async def f1ls(self, ctx):
         """**.f1ls** - Formula 1 list sessions"""
         async with ctx.message.channel.typing():
-            events = "\n".join(await self.get_events(10))
-            return await ctx.message.channel.send(events)
+            return await ctx.message.channel.send("\n".join(await self.get_events(10)))
 
 
 def setup(bot):
