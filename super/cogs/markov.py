@@ -72,8 +72,9 @@ class Markov(commands.Cog):
 
     @commands.command(no_pm=True, pass_context=True)
     async def replyrate(self, ctx):
-        if ctx.message.author.id not in settings.SUPER_ADMINS:
-            return await ctx.message.channel.send(f"You cannot configure this.")
+        if str(ctx.message.author.id) not in settings.SUPER_ADMINS:
+            return await ctx.message.channel.send(f"no")
+
         message = ctx.message.content.split(" ")
         replyrate = int(message[1])
 
