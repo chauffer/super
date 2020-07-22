@@ -27,6 +27,7 @@ extensions = [
     "super.cogs.f1",
     "super.cogs.astro",
     "super.cogs.help",
+    "super.cogs.owo",
 ]
 
 
