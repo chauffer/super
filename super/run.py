@@ -3,9 +3,6 @@ import discord
 import aiohttp
 import json
 import asyncio
-import uvloop
-
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 from . import settings
 from .utils import R

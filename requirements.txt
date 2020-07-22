@@ -27,7 +27,6 @@ python-dateutil==2.8.1    # via arrow, ics
 python-levenshtein==0.12.0  # via fuzzywuzzy
 six==1.15.0               # via ics, python-dateutil
 tatsu==5.5.0              # via ics
-uvloop==0.14.0            # via -r requirements.in
 websockets==8.1           # via discord.py
 yarl==1.4.2               # via aiohttp
 
