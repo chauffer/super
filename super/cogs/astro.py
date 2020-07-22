@@ -2,7 +2,7 @@ import time
 import aiohttp
 from discord.ext import commands
 from discord import Embed
-from super.utils import fuz
+from super.utils import fuz, owoify
 
 
 class Astro(commands.Cog):
@@ -36,9 +36,7 @@ class Astro(commands.Cog):
             ) as resp:
                 return await resp.json()
 
-    @commands.command(no_pm=True, pass_context=True)
-    async def astro(self, ctx):
-        """**.astro** <sign> [today|week|month|year] - Daily dose of bullshit"""
+    async def _astro(self, ctx, owo=False):
         async with ctx.message.channel.typing():
             message = ctx.message.content.split(" ")
 
@@ -52,14 +50,24 @@ class Astro(commands.Cog):
             when = fuz(
                 message[2] if len(message) >= 3 else "today", self.times, "today"
             )
-            horoscope = await self._get_sunsign(sunsign, when)
-            print("ssw", sunsign, when)
-            embed = Embed(
-                title=f"{when}'s horoscope for {sunsign}",
-                type="rich",
-                description=horoscope["horoscope"],
-            )
-            return await ctx.message.channel.send(embed=embed)
+
+            title = f"{when}'s horoscope for {sunsign}"
+            horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+            if owo:
+                horoscope = owoify(horoscope)
+                title = owoify(title)
+
+            return Embed(title=title, type="rich", description=horoscope)
+
+    @commands.command(no_pm=True, pass_context=True)
+    async def astro(self, ctx):
+        """**.astro** <sign> [today|week|month|year] - Daily dose of bullshit"""
+        return await ctx.message.channel.send(embed=await self._astro(ctx))
+
+    @commands.command(no_pm=True, pass_context=True)
+    async def astrowo(self, ctx):
+        """**.astrowo** <sign> [today|week|month|year] - Daiwy dose of buwwshit"""
+        return await ctx.message.channel.send(embed=await self._astro(ctx, owo=True))
 
 
 def setup(bot):

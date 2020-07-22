@@ -1,3 +1,4 @@
+import aiohttp
 import random
 import re
 
@@ -26,7 +27,8 @@ owo_faces = [
 
 
 def owoify(text):
-    reply_text = re.sub(r"r|l", "w", text)
+    reply_text = str(text)
+    reply_text = re.sub(r"r|l", "w", reply_text)
     reply_text = re.sub(r"R|L", "W", reply_text)
     reply_text = re.sub(r"[ＲＬ]", "Ｗ", reply_text)
     reply_text = re.sub(r"n([aeiouａｅｉｏｕ])", r"ny\1", reply_text)
