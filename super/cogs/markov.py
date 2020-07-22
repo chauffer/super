@@ -4,7 +4,7 @@ import re
 from discord.ext import commands
 from cobe.brain import Brain
 from super import settings
-from super.utils import R
+from super.utils import R, owoify
 
 
 class Markov(commands.Cog):
@@ -69,6 +69,14 @@ class Markov(commands.Cog):
             brain = self._get_brain(ctx.message.author.guild.id)
             about = ctx.message.content.split(" ", 1)[1]
             return await ctx.message.channel.send(brain.reply(about))
+
+    @commands.command(no_pm=True, pass_context=True)
+    async def owochat(self, ctx):
+        """**.owochat** <text> - Reply to a message, owoified"""
+        async with ctx.message.channel.typing():
+            brain = self._get_brain(ctx.message.author.guild.id)
+            about = ctx.message.content.split(" ", 1)[1]
+            return await ctx.message.channel.send(owoify(brain.reply(about)))
 
     @commands.command(no_pm=True, pass_context=True)
     async def replyrate(self, ctx):
