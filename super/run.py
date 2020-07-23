@@ -1,12 +1,7 @@
 from discord.ext import commands
-import discord
-import aiohttp
-import json
-import asyncio
 
 from . import settings
 from .utils import R
-
 
 description = "<https://github.com/chauffer/super|super>"
 

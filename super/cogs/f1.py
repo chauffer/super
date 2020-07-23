@@ -1,4 +1,3 @@
-import time
 import aiohttp
 import ics
 from ago import human
