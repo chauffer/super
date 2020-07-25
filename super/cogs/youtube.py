@@ -128,18 +128,22 @@ class Youtube(commands.Cog):
         if server.is_connected and server.channel != get_user_voice_channel(ctx):
             return await ctx.message.channel.send("join MY voice channel....")
 
-        if message[1].startswith("http"):
+        try:
+            if len(message) > 2:
+                raise IndexError()
+
+            good_word = self.word(message[1])
+            if good_word != message[1]:
+                await ctx.message.channel.send(
+                    f"{message[2]}? assuming you meant _{good_word}_..."
+                )
+            return await self.command(good_word)(ctx, server, message[2:])
+
+        except IndexError:
             if not server.is_connected:
                 server.channel = get_user_voice_channel(ctx)
                 await server.connect()
-            return await server.queue(Song(message[1], server, ctx.message))
-
-        good_word = self.word(message[1])
-        if good_word != message[1]:
-            await ctx.message.channel.send(
-                f"{message[2]}? assuming you meant _{good_word}_..."
-            )
-        return await self.command(good_word)(ctx, server, message[2:])
+            return await server.queue(message[1:], server, ctx.message)
 
 
 def setup(bot):
