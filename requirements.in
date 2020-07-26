@@ -1,6 +1,6 @@
 aiohttp
 asyncio
-discord.py
+discord.py[voice]
 aioredis
 -e git+git://github.com/chauffer/cobe.git#egg=cobe
 humanize
@@ -10,6 +10,5 @@ arrow
 ago
 fuzzywuzzy[speedup]
 youtube-dl
-pynacl
 aioyoutube
 aniso8601
