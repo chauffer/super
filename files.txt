@@ -1,0 +1,21 @@
+./setup.py                          defines the package
+./super/run.py                      entrypoint, starts the bot
+./super/__init__.py                 package
+./super/utils/fuzzy.py              lib: used in astro, youtube
+./super/utils/youtube.py            api: code to interface to youtube
+./super/utils/eightball.py          eightball: static values
+./super/utils/__init__.py           * super.utils namespace
+./super/utils/voice.py              functionality for voice chat (youtube)
+./super/utils/redis.py              to connect to SuperRedis
+./super/utils/funny_text.py         text owoifier, gizoogle
+./super/settings.py                 environment variable based
+./super/cogs/f1.py                  cog: f1 command
+./super/cogs/translate.py           cog: translate command
+./super/cogs/youtube.py             cog: youtube command
+./super/cogs/eightball.py           cog: 8ball command
+./super/cogs/markov.py              cog: markov chat using cobe
+./super/cogs/gif.py                 cog: gif command
+./super/cogs/np.py                  cog: np command using last.fm
+./super/cogs/astro.py               cog: astro & astrowo commands
+./super/cogs/owo.py                 cog: owo command
+./super/cogs/help.py                cog: help command
