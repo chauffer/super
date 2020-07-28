@@ -7,7 +7,7 @@ import aniso8601
 import discord
 from discord.ext import commands
 from fuzzywuzzy import process
-from super.settings import SUPER_QUEUE_PAGINATION
+from super.settings import SUPER_QUEUE_PAGINATION, SUPER_ADMINS
 from super.utils import get_user_voice_channel, prompt_video_choice
 from super.utils.voice import Servers, Song
 from super.utils.youtube import YT
@@ -27,6 +27,8 @@ class Youtube(commands.Cog):
             "queue": (self.queue, ("queue", "q")),
             "np": (self.np, ("np", "playing")),
             "search": (self.search, ("search", "s")),
+            "remove": (self.remove, ("rm", "del", "delete", "remove")),
+            "mute": (self.mute, ("mute",))
         }
         self.S = Servers(self.bot)
 
@@ -137,6 +139,21 @@ class Youtube(commands.Cog):
             Song("https://youtube.com/watch?v=" + results[choice]["id"], server, ctx)
         )
 
+    async def remove(self, ctx, server, message):
+        pos = int(message[0])
+        if pos > 0:
+            if server._queue[pos + 1].user != ctx.message.author:
+                return await ctx.message.channel.send("you cannot delete this song")
+            with suppress(IndexError):
+                server._queue.pop(pos + 1)
+        return await ctx.message.channel.send("deleted")
+
+    async def mute(self, ctx, server, message):
+        if str(ctx.message.author.id) not in SUPER_ADMINS:
+            return await ctx.message.channel.send("you cannot mute the audio...")
+        server.volume = 0
+        return
+
     @commands.command(no_pm=True, pass_context=True)
     async def yt(self, ctx):
         """**.yt** <url> - play Youtube video"""
@@ -153,6 +170,8 @@ class Youtube(commands.Cog):
             **.yt np** to see what's playing
             **.yt queue** to list all queued songs
             **.yt search** if you want to be more picky with your search
+            **.yt rm** remove song from the queue
+            **.yt mute** mute the audio
             """
             )
 
@@ -181,7 +200,7 @@ class Youtube(commands.Cog):
         if message[1] in self.words.keys():
             return await self.command(self.words[message[1]])(ctx, server, message[2:])
 
-        # .yt valume 30
+        # .yt volume 30
         fuzzy_input = " ".join(message[1:])
         good_word = self.word(fuzzy_input)
         if len(fuzzy_input) > 5 and good_word is not None and good_word != message[1]:
