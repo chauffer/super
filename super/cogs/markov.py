@@ -56,7 +56,7 @@ class Markov(commands.Cog):
         brain.learn(learned_message)
 
         if mentioned or await self.should_reply(message.channel.id):
-            reply = self.sanitize_out(brain.reply(message.content))
+            reply = self.sanitize_out(brain.reply(learned_message))
             if reply == message.content:
                 return
 
