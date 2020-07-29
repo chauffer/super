@@ -53,6 +53,7 @@ class Markov(commands.Cog):
         mentioned = any(self.bot.user.id == m.id for m in message.mentions)
 
         learned_message = re.sub(mention, "Super", message.content).strip()
+        learned_message = re.sub("^Super ", "", learned_message)
         brain.learn(learned_message)
 
         if mentioned or await self.should_reply(message.channel.id):
