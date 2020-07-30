@@ -49,7 +49,7 @@ class Server:
         if song.metadata['snippet']['liveBroadcastContent'] != 'none':
             return await song.channel.send("cannot queue livestreams")
         
-        if song.title_duration.seconds / 60 < SUPER_AUDIO_LIMIT:
+        if song.title_duration.seconds / 60 > SUPER_AUDIO_LIMIT:
             return await song.channel.send("song is too long")
 
         self._queue.append(song)
@@ -117,6 +117,7 @@ class Server:
 
     async def play_next(self):
         if not self._queue:
+            await self.disconnect()
             return
 
         if self.playing:
