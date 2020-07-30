@@ -7,7 +7,7 @@ import aniso8601
 import discord
 from discord.ext import commands
 from fuzzywuzzy import process
-from super.settings import SUPER_QUEUE_PAGINATION, SUPER_ADMINS
+from super.settings import SUPER_QUEUE_PAGINATION, SUPER_ADMINS, SUPER_AUDIO_LIMIT
 from super.utils import get_user_voice_channel, prompt_video_choice
 from super.utils.voice import Servers, Song
 from super.utils.youtube import YT
@@ -28,7 +28,7 @@ class Youtube(commands.Cog):
             "np": (self.np, ("np", "playing")),
             "search": (self.search, ("search", "s")),
             "remove": (self.remove, ("rm", "del", "delete", "remove")),
-            "mute": (self.mute, ("mute",))
+            "mute": (self.mute, ("mute",)),
         }
         self.S = Servers(self.bot)
 
@@ -65,7 +65,8 @@ class Youtube(commands.Cog):
 
     async def leave(self, ctx, server, message):
         try:
-            return await self.S[ctx.message.guild.id].disconnect()
+            if self.S[ctx.message.guild.id].is_connected:
+                return await self.S[ctx.message.guild.id].disconnect()
         except:
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
@@ -113,7 +114,18 @@ class Youtube(commands.Cog):
         if not len(message):
             return
 
-        results = (await YT().search_videos(" ".join(message)))["items"]
+        results = [
+            result
+            for result in (await YT().search_videos(" ".join(message), 10))["items"]
+            if result["snippet"]["liveBroadcastContent"] == "none"
+            and aniso8601.parse_duration(result["contentDetails"]["duration"]).seconds
+            / 60
+            < SUPER_AUDIO_LIMIT
+        ]
+
+        if not results:
+            return await ctx.message.channel.send("cannot find video")
+
         if lucky:
             url = "https://youtube.com/watch?v=" + results[0]["id"]
             await server.queue(Song(url, server, ctx))
@@ -133,7 +145,7 @@ class Youtube(commands.Cog):
             )
 
         message = await ctx.message.channel.send(embed=embed)
-        choice = await prompt_video_choice(message, ctx)
+        choice = await prompt_video_choice(message, ctx, len(results[:5]))
         await message.delete()
         await server.queue(
             Song("https://youtube.com/watch?v=" + results[choice]["id"], server, ctx)
@@ -149,10 +161,7 @@ class Youtube(commands.Cog):
         return await ctx.message.channel.send("deleted")
 
     async def mute(self, ctx, server, message):
-        if str(ctx.message.author.id) not in SUPER_ADMINS:
-            return await ctx.message.channel.send("you cannot mute the audio...")
-        server.volume = 0
-        return
+        return await self.volume(ctx, server, ["0"])
 
     @commands.command(no_pm=True, pass_context=True)
     async def yt(self, ctx):
@@ -200,7 +209,7 @@ class Youtube(commands.Cog):
         if message[1] in self.words.keys():
             return await self.command(self.words[message[1]])(ctx, server, message[2:])
 
-        # .yt volume 30
+        # .yt valume 30
         fuzzy_input = " ".join(message[1:])
         good_word = self.word(fuzzy_input)
         if len(fuzzy_input) > 5 and good_word is not None and good_word != message[1]:

@@ -16,6 +16,7 @@ import youtube_dl
 from super.settings import SUPER_HELP_COLOR
 from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
 from super.settings import SUPER_YOUTUBE_API_KEY
+from super.settings import SUPER_AUDIO_LIMIT
 from super.utils.youtube import YT
 
 
@@ -47,6 +48,9 @@ class Server:
 
         if song.metadata['snippet']['liveBroadcastContent'] != 'none':
             return await song.channel.send("cannot queue livestreams")
+        
+        if song.title_duration.seconds / 60 < SUPER_AUDIO_LIMIT:
+            return await song.channel.send("song is too long")
 
         self._queue.append(song)
         if not self.is_playing:
@@ -132,7 +136,7 @@ class Server:
 
         [
             embed.add_field(
-                name=f"**{index}.** {song.title_duration}", value="\u200b", inline=False
+                name=f"**{index}.** {song.title} {song.title_duration}", value="\u200b", inline=False
             )
             for index, song in enumerate(self._queuep(page), start=1)
         ]
@@ -177,10 +181,7 @@ class Song:
 
     @property
     def title_duration(self):
-        return (
-            f"{self.title}"
-            f" [{aniso8601.parse_duration(self.metadata['contentDetails']['duration'])}]"
-        )
+        return aniso8601.parse_duration(self.metadata['contentDetails']['duration'])
 
     @property
     def uploader(self):
@@ -233,7 +234,7 @@ class Song:
     @property
     def now_playing_embed(self):
         embed = discord.Embed(
-            title=self.title_duration,
+            title=f"{self.title} {self.title_duration}",
             url=self.url,
             description=f"by {self.user.mention}",
             color=SUPER_HELP_COLOR,
@@ -291,12 +292,12 @@ def get_user_voice_channel(ctx):
     )
 
 
-async def prompt_video_choice(message, ctx):
+async def prompt_video_choice(message, ctx, limit):
     """ Prompt user to choose video by reactions """
 
-    reactions = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣")
+    reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
 
-    for reaction in reactions:
+    for reaction in reactions[:limit]:
         await message.add_reaction(emoji=reaction)
 
     def check(reaction, reactee):

@@ -2,7 +2,7 @@ from functools import partial
 
 import aioyoutube
 
-from super import SUPER_YOUTUBE_API_KEY
+from super.settings import SUPER_YOUTUBE_API_KEY
 
 
 class YT:
@@ -11,7 +11,7 @@ class YT:
 
     async def search_videos(self, text, limit=5):
         results = await self.api.search(
-            key=SUPER_YOUTUBE_API_KEY, text=text, max_results=5
+            key=SUPER_YOUTUBE_API_KEY, text=text, max_results=limit, order='relevance'
         )
 
         metadata = await self.api.videos(
