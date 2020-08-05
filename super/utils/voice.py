@@ -16,7 +16,8 @@ import youtube_dl
 from super.settings import SUPER_HELP_COLOR
 from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
 from super.settings import SUPER_YOUTUBE_API_KEY
-from super.settings import SUPER_AUDIO_LIMIT
+from super.settings import SUPER_MAX_YOUTUBE_LENGTH
+from super.settings import SUPER_YOUTUBE_TIMEOUT
 from super.utils.youtube import YT
 
 
@@ -28,6 +29,7 @@ class Server:
         self._queue = []
         self.playing = None
         self._volume = 70
+        self.leave_task = None
 
     def __str__(self):
         return self.id
@@ -42,6 +44,8 @@ class Server:
         if self._queue:
             with suppress(Exception):  # run play_next async
                 asyncio.run_coroutine_threadsafe(self.play_next, self.bot.loop).result()
+        else:
+            self.leave_task = self.bot.loop.create_task(self.autoleave())
 
     async def queue(self, song):
         await song.get_metadata()
@@ -49,10 +53,14 @@ class Server:
         if song.metadata['snippet']['liveBroadcastContent'] != 'none':
             return await song.channel.send("cannot queue livestreams")
         
-        if song.title_duration.seconds / 60 > SUPER_AUDIO_LIMIT:
-            return await song.channel.send("song is too long")
+        if len(song) > SUPER_MAX_YOUTUBE_LENGTH:
+            return await song.channel.send(f"song is longer than {SUPER_MAX_YOUTUBE_LENGTH} seconds")
 
         self._queue.append(song)
+
+        if self.leave_task is not None:
+            self.leave_task.cancel()
+
         if not self.is_playing:
             return await self.play_next()
 
@@ -114,12 +122,13 @@ class Server:
     def prefetch(self):
         if self._queue:
             self._queue[0].download()
+    
+    async def autoleave(self):
+        await asyncio.sleep(SUPER_YOUTUBE_TIMEOUT)
+        await self.disconnect()
+        return
 
     async def play_next(self):
-        if not self._queue:
-            await self.disconnect()
-            return
-
         if self.playing:
             self.playing.remove()
 
@@ -137,7 +146,7 @@ class Server:
 
         [
             embed.add_field(
-                name=f"**{index}.** {song.title} {song.title_duration}", value="\u200b", inline=False
+                name=f"**{index}.** {song.title_duration}", value="\u200b", inline=False
             )
             for index, song in enumerate(self._queuep(page), start=1)
         ]
@@ -167,6 +176,9 @@ class Song:
 
     def __str__(self):
         return f"**{self.url}** added {self.ago} by {self.user.name}"
+    
+    def __len__(self):
+        return aniso8601.parse_duration(self.metadata['contentDetails']['duration']).seconds
 
     @property
     def ago(self):
@@ -182,7 +194,10 @@ class Song:
 
     @property
     def title_duration(self):
-        return aniso8601.parse_duration(self.metadata['contentDetails']['duration'])
+        return (
+            f"{self.title}"
+            f" [{aniso8601.parse_duration(self.metadata['contentDetails']['duration'])}]"
+        )
 
     @property
     def uploader(self):
@@ -235,7 +250,7 @@ class Song:
     @property
     def now_playing_embed(self):
         embed = discord.Embed(
-            title=f"{self.title} {self.title_duration}",
+            title=f"{self.title_duration}",
             url=self.url,
             description=f"by {self.user.mention}",
             color=SUPER_HELP_COLOR,
@@ -296,7 +311,7 @@ def get_user_voice_channel(ctx):
 async def prompt_video_choice(message, ctx, limit):
     """ Prompt user to choose video by reactions """
 
-    reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+    reactions = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣")
 
     for reaction in reactions[:limit]:
         await message.add_reaction(emoji=reaction)
