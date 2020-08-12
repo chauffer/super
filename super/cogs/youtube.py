@@ -114,7 +114,7 @@ class Youtube(commands.Cog):
         if not len(message):
             return
 
-        results = (await YT().search_videos(" ".join(message), 10))['items']
+        results = (await YT().search_videos(" ".join(message), 10))
 
         if not results:
             return await ctx.message.channel.send("cannot find video")
