@@ -1,14 +1,22 @@
-import os
-import tempfile
 import asyncio
+import html
 import math
+import os
+import re
+import tempfile
 from collections import defaultdict
 from contextlib import suppress
 from time import time
-import youtube_dl
-import discord
-from super.settings import SUPER_HELP_COLOR, SUPER_QUEUE_PAGINATION as S_Q_P
+
 from ago import human
+
+import aniso8601
+import discord
+import youtube_dl
+from super.settings import SUPER_HELP_COLOR
+from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
+from super.settings import SUPER_YOUTUBE_API_KEY
+from super.utils.youtube import YT
 
 
 class Server:
@@ -18,6 +26,7 @@ class Server:
         self.channel = None
         self._queue = []
         self.playing = None
+        self._volume = 70
 
     def __str__(self):
         return self.id
@@ -34,21 +43,15 @@ class Server:
                 asyncio.run_coroutine_threadsafe(self.play_next, self.bot.loop).result()
 
     async def queue(self, song):
-        song.get_metadata()
         self._queue.append(song)
         if not self.is_playing:
             return await self.play_next()
-        return await song.display_queued(len(self._queue))
+
+        await song.display_queued()
+        self.prefetch()
 
     async def current_song(self, ctx):
-        embed = discord.Embed(type="rich", color=SUPER_HELP_COLOR)
-        embed.set_author(name="now playing")
-        embed.add_field(
-            name=self.playing.metadata["title"],
-            value=f"by {self.playing.user}",
-            inline=False,
-        )
-        return await ctx.message.channel.send(embed=embed)
+        return await ctx.message.channel.send(embed=self.playing.now_playing_embed)
 
     @property
     def is_playing(self):
@@ -69,16 +72,26 @@ class Server:
         return self.voice_client.is_connected()
 
     @property
+    def volume(self):
+        return self._volume
+
+    @volume.setter
+    def volume(self, value):
+        self._volume = value
+        with suppress(Exception):
+            self.voice_client.source.volume = value / 100
+
+    @property
     def _queuepages(self):
         return math.ceil(len(self._queue) / S_Q_P)
 
     def _queuep(self, page):
-        '''returns paginated queue'''
+        """returns paginated queue"""
         return self._queue[(page - 1) * S_Q_P : page * S_Q_P]
 
     async def connect(self):
         if self.channel and not self.is_connected:
-            return await self.channel.connect(timeout=3, reconnect=True)
+            await self.channel.connect(timeout=3, reconnect=True)
 
     async def disconnect(self):
         return await self.voice_client.disconnect()
@@ -89,6 +102,10 @@ class Server:
     async def pause(self):
         return await self.voice_client.pause()
 
+    def prefetch(self):
+        if self._queue:
+            self._queue[0].download()
+
     async def play_next(self):
         if not self._queue:
             return
@@ -97,8 +114,9 @@ class Server:
             self.playing.remove()
 
         self.playing = self._queue.pop(0)
-        await self.connect()
+        print("Connecting")
         await self.playing.play()
+        self.prefetch()
 
     async def display_queue(self, ctx, page):
         if not self._queue:
@@ -107,12 +125,14 @@ class Server:
         embed = discord.Embed(type="rich", color=SUPER_HELP_COLOR)
         embed.set_author(name="Song Queue")
 
-        [embed.add_field(name=f"**{index}.** {song.title_duration}", inline=False)
-        for index, song in enumerate(self._queuep(page), start=1)]
+        [
+            embed.add_field(
+                name=f"**{index}.** {song.title_duration}", value="\u200b", inline=False
+            )
+            for index, song in enumerate(self._queuep(page), start=1)
+        ]
 
-        embed.set_footer(
-            text=f"page {page} of {self._queuepages)}"
-        )
+        embed.set_footer(text=f"page {page} of {self._queuepages}")
 
         return await ctx.message.channel.send(embed=embed)
 
@@ -120,11 +140,13 @@ class Server:
 class Song:
     """Song object"""
 
-    def __init__(self, url, server, message):
+    def __init__(self, url, server, ctx):
         self.url = url
         self.server = server
-        self.channel = message.channel
-        self.user = message.author
+        self.channel = ctx.message.channel
+        self.user = ctx.message.author
+        self.bot = ctx.bot
+
         self.metadata = None
         self.path = (
             os.path.join(tempfile.gettempdir(), next(tempfile._get_candidate_names()))
@@ -134,7 +156,7 @@ class Song:
         self.added_at = time()
 
     def __str__(self):
-        return f"**{self.url}** added {self.ago} by {self.user}"
+        return f"**{self.url}** added {self.ago} by {self.user.name}"
 
     @property
     def ago(self):
@@ -145,23 +167,46 @@ class Song:
         return self.server.is_playing and self.server.playing == self
 
     @property
+    def title(self):
+        return self.metadata["snippet"]["title"]
+
+    @property
     def title_duration(self):
-        m, s = self.metadata["duration"] / 60, self.metadata["duration"] % 60
-        return f"{self.metadata['title']} [{m}:{s}]"
+        return (
+            f"{self.title}"
+            f" [{aniso8601.parse_duration(self.metadata['contentDetails']['duration'])}]"
+        )
+
+    @property
+    def uploader(self):
+        return self.metadata["snippet"]["channelTitle"]
+
+    @property
+    def thumbnail(self):
+        try:
+            return self.metadata["snippet"]["thumbnails"]["default"]["url"]
+        except:
+            return "https://i.imgur.com/s4dTtBy.jpg"
+
+    @property
+    def video_id(self):
+        return re.findall(
+            r"youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})", self.url
+        )[0]
+
+    async def get_metadata(self):
+        if not self.metadata:
+            self.metadata = await YT().metadata(video_id=self.video_id)
 
     def remove(self):
         self.is_downloaded = False
         with suppress(Exception):
             os.remove(self.path)
 
-    def get_metadata(self):
-        """ Fetch song metadata using youtube_dl """
-        with youtube_dl.YoutubeDL() as ydl:
-            self.metadata = ydl.extract_info(self.url, download=False)
-
     def download(self):
         """ Download song using youtube_dl """
-
+        if self.is_downloaded:
+            return
         ydl_options = {
             "outtmpl": self.path,
             "format": "bestaudio/best",
@@ -180,37 +225,37 @@ class Song:
             ydl.download([self.url])
             self.is_downloaded = True
 
-    async def now_playing(self):
+    @property
+    def now_playing_embed(self):
         embed = discord.Embed(
             title=self.title_duration,
             url=self.url,
-            description=f'uploader: {self.metadata["uploader"]}',
+            description=f"by {self.user.mention}",
             color=SUPER_HELP_COLOR,
             type="rich",
         )
-        embed.set_author(name=f"now playing, by {self.user.mention}")
-        embed.set_thumbnail(url=self.metadata["thumbnail"])
-        await self.channel.send(embed=embed)
+        embed.set_author(name=f"now playing")
+        embed.set_thumbnail(url=self.thumbnail)
+        return embed
 
-    async def display_queued(self, index):
+    async def display_queued(self):
+        await self.get_metadata()
         embed = discord.Embed(
-            title=self.metadata["title"],
-            url=self.url,
-            color=SUPER_HELP_COLOR,
-            type="rich",
+            title=self.title, url=self.url, color=SUPER_HELP_COLOR, type="rich",
         )
-        embed.set_author(name=f"queued in position #{index}...")
-        embed.set_thumbnail(url=self.metadata["thumbnail"])
+        embed.set_author(name=f"queued in position #{len(self.server._queue)}...")
+        embed.set_thumbnail(url=self.thumbnail)
         await self.channel.send(embed=embed)
 
     async def play(self):
-        if not self.is_downloaded:
-            self.download()
         print("Playing", self.path)
-        await self.now_playing()
+        await self.get_metadata()
+        await self.channel.send(embed=self.now_playing_embed)
+        await self.server.connect()
+        self.download()
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.path))
         self.server.voice_client.play(source, after=self.server.song_ended)
-        self.server.voice_client.source.volume = 0.5
+        self.server.voice_client.source.volume = self.server.volume
 
 
 class Servers(defaultdict):
@@ -240,3 +285,22 @@ def get_user_voice_channel(ctx):
         ),
         None,
     )
+
+
+async def prompt_video_choice(message, ctx):
+    """ Prompt user to choose video by reactions """
+
+    reactions = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣")
+
+    for reaction in reactions:
+        await message.add_reaction(emoji=reaction)
+
+    def check(reaction, reactee):
+        return ctx.message.author == reactee and str(reaction.emoji) in reactions
+
+    try:
+        reaction, _ = await ctx.bot.wait_for("reaction_add", timeout=60.0, check=check)
+    except asyncio.TimeoutError:
+        return 0
+    else:
+        return reactions.index(str(reaction.emoji))

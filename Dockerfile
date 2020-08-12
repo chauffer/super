@@ -2,15 +2,13 @@ FROM python:3.8-alpine
 
 WORKDIR /app
 COPY ./requirements.txt /app
-
-RUN apk --no-cache --virtual=.build-deps add build-base musl-dev git libffi-dev &&\
+RUN apk --virtual=.build-deps add build-base musl-dev git libffi-dev gcc &&\
+    apk --virtual=.run-deps add ffmpeg opus && \
     mkdir -p /dependencies && cd /dependencies &&\
     pip install --no-cache-dir -r /app/requirements.txt &&\
-    apk --purge del .build-deps &&\
-    apk add ffmpeg opus gcc
+    apk --purge del .build-deps
 
 COPY . /app
-
 RUN pip install -e .
 
 ENV PYTHONUNBUFFERED=1
