@@ -20,6 +20,7 @@ extensions = [
     "super.cogs.astro",
     "super.cogs.help",
     "super.cogs.owo",
+    "super.cogs.youtube",
 ]
 
 
