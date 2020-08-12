@@ -13,7 +13,7 @@ class YT:
 
     async def search_videos(self, text, limit=5):
         results = await self.api.search(
-            key=SUPER_YOUTUBE_API_KEY, text=text, max_results=limit
+            key=SUPER_YOUTUBE_API_KEY, text=text, max_results=limit, order="relevance"
         )
 
         metadata = await self.api.videos(

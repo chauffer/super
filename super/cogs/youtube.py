@@ -40,7 +40,7 @@ class Youtube(commands.Cog):
                 words[word] = command
         return words
 
-     def word(self, badword, threshold=90, default=None):
+    def word(self, badword, threshold=90, default=None):
         words = [word for word in self.words.keys() if len(word) > 3]
         candidate, score = process.extractOne(badword, words)
         return self.words[candidate] if score > threshold else default
