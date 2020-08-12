@@ -43,6 +43,11 @@ class Server:
                 asyncio.run_coroutine_threadsafe(self.play_next, self.bot.loop).result()
 
     async def queue(self, song):
+        await song.get_metadata()
+
+        if song.metadata['snippet']['liveBroadcastContent'] != 'none':
+            return await song.channel.send("cannot queue livestreams")
+
         self._queue.append(song)
         if not self.is_playing:
             return await self.play_next()
@@ -239,7 +244,6 @@ class Song:
         return embed
 
     async def display_queued(self):
-        await self.get_metadata()
         embed = discord.Embed(
             title=self.title, url=self.url, color=SUPER_HELP_COLOR, type="rich",
         )

@@ -28,7 +28,7 @@ class Youtube(commands.Cog):
             "np": (self.np, ("np", "playing")),
             "remove": (self.remove, ("rm", "del", "delete", "remove")),
             "mute": (self.mute, ("mute",)),
-            "search": (self.search, ("search", "s")),,
+            "search": (self.search, ("search", "s")),
         }
         self.S = Servers(self.bot)
 
