@@ -22,15 +22,16 @@ class YT:
                 video["id"]["videoId"]
                 for video in results["items"]
                 if video["snippet"]["liveBroadcastContent"] == "none"
-                and aniso8601.parse_duration(
-                    video["contentDetails"]["duration"]
-                ).seconds
-                < SUPER_MAX_YOUTUBE_LENGTH
             ],
             part=["snippet", "contentDetails"],
         )
 
-        return metadata
+        return [
+            video
+            for video in metadata['items']
+            if aniso8601.parse_duration(video['contentDetails']['duration']).seconds
+            < SUPER_MAX_YOUTUBE_LENGTH
+        ][:5]
 
     async def metadata(self, video_id):
         print("md", video_id)
