@@ -16,6 +16,7 @@ import youtube_dl
 from super.settings import SUPER_HELP_COLOR
 from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
 from super.settings import SUPER_YOUTUBE_API_KEY
+from super.settings import SUPER_MAX_YOUTUBE_LENGTH
 from super.utils.youtube import YT
 
 
@@ -47,6 +48,9 @@ class Server:
 
         if song.metadata['snippet']['liveBroadcastContent'] != 'none':
             return await song.channel.send("cannot queue livestreams")
+
+        if len(song) > SUPER_MAX_YOUTUBE_LENGTH:
+            return await song.channel.send(f"song is longer than {SUPER_MAX_YOUTUBE_LENGTH} seconds")
 
         self._queue.append(song)
         if not self.is_playing:
@@ -162,6 +166,9 @@ class Song:
 
     def __str__(self):
         return f"**{self.url}** added {self.ago} by {self.user.name}"
+    
+    def __len__(self):
+        return aniso8601.parse_duration(self.metadata['contentDetails']['duration']).seconds
 
     @property
     def ago(self):
@@ -233,7 +240,7 @@ class Song:
     @property
     def now_playing_embed(self):
         embed = discord.Embed(
-            title=self.title_duration,
+            title=f"{self.title_duration}",
             url=self.url,
             description=f"by {self.user.mention}",
             color=SUPER_HELP_COLOR,
@@ -291,12 +298,12 @@ def get_user_voice_channel(ctx):
     )
 
 
-async def prompt_video_choice(message, ctx):
+async def prompt_video_choice(message, ctx, limit):
     """ Prompt user to choose video by reactions """
 
     reactions = ("1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣")
 
-    for reaction in reactions:
+    for reaction in reactions[:limit]:
         await message.add_reaction(emoji=reaction)
 
     def check(reaction, reactee):

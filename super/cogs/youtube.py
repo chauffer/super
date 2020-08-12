@@ -7,7 +7,7 @@ import aniso8601
 import discord
 from discord.ext import commands
 from fuzzywuzzy import process
-from super.settings import SUPER_QUEUE_PAGINATION
+from super.settings import SUPER_QUEUE_PAGINATION, SUPER_MAX_YOUTUBE_LENGTH
 from super.utils import get_user_voice_channel, prompt_video_choice
 from super.utils.voice import Servers, Song
 from super.utils.youtube import YT
@@ -114,7 +114,11 @@ class Youtube(commands.Cog):
         if not len(message):
             return
 
-        results = (await YT().search_videos(" ".join(message)))["items"]
+        results = (await YT().search_videos(" ".join(message), 10))['items']
+
+        if not results:
+            return await ctx.message.channel.send("cannot find video")
+
         if lucky:
             url = "https://youtube.com/watch?v=" + results[0]["id"]
             await server.queue(Song(url, server, ctx))
@@ -134,7 +138,7 @@ class Youtube(commands.Cog):
             )
 
         message = await ctx.message.channel.send(embed=embed)
-        choice = await prompt_video_choice(message, ctx)
+        choice = await prompt_video_choice(message, ctx, len(results[:5]))
         await message.delete()
         await server.queue(
             Song("https://youtube.com/watch?v=" + results[choice]["id"], server, ctx)
