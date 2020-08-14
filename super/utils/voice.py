@@ -12,6 +12,7 @@ from ago import human
 
 import aniso8601
 import discord
+import structlog
 import youtube_dl
 from super.settings import SUPER_HELP_COLOR
 from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
@@ -19,6 +20,9 @@ from super.settings import SUPER_YOUTUBE_API_KEY
 from super.settings import SUPER_MAX_YOUTUBE_LENGTH
 from super.settings import SUPER_YOUTUBE_TIMEOUT
 from super.utils.youtube import YT
+
+
+logger = structlog.getLogger(__name__)
 
 
 class Server:
@@ -57,6 +61,7 @@ class Server:
             return await song.channel.send(f"song is longer than {SUPER_MAX_YOUTUBE_LENGTH} seconds")
 
         self._queue.append(song)
+        logger.info("utils/voice/queue: Queued", song=song.url, server=song.server)
         if self.leave_task is not None:
             self.leave_task.cancel()
 
@@ -106,24 +111,42 @@ class Server:
         return self._queue[(page - 1) * S_Q_P : page * S_Q_P]
 
     async def connect(self):
+        logger.debug(
+            "utils/voice/connect: Connecting to voice channel",
+            channel_name=self.channel.name,
+            server=self.id,
+        )
         if self.channel and not self.is_connected:
             await self.channel.connect(timeout=3, reconnect=True)
 
     async def disconnect(self):
+        logger.debug(
+            "utils/voice/disconnect: Disconnecting from voice channel",
+            channel_name=self.channel.name,
+            server=self,
+        )
         return await self.voice_client.disconnect()
 
     async def resume(self):
+        logger.debug("utils/voice/resume: Resuing playback", server=self)
         return await self.voice_client.resume()
 
     async def pause(self):
+        logger.debug("utils/voice/pause: Pausing playback", server=self)
         return await self.voice_client.pause()
 
     def prefetch(self):
         if self._queue:
+            logger.debug(
+                "utils/voice/prefech: Prefetching",
+                song=self._queue[0].url,
+                server=self,
+            )
             self._queue[0].download()
-    
+
     async def autoleave(self):
         await asyncio.sleep(SUPER_YOUTUBE_TIMEOUT)
+        logger.debug("utils/voice/autoleave: Leaving voice channel", server=self)
         await self.disconnect()
         return
 
@@ -132,7 +155,11 @@ class Server:
             self.playing.remove()
 
         self.playing = self._queue.pop(0)
-        print("Connecting")
+        logger.debug(
+            "utils/voice/play_next: Playing next song",
+            next_song=self.playing.url,
+            server=self,
+        )
         await self.playing.play()
         self.prefetch()
 
@@ -175,9 +202,11 @@ class Song:
 
     def __str__(self):
         return f"**{self.url}** added {self.ago} by {self.user.name}"
-    
+
     def __len__(self):
-        return aniso8601.parse_duration(self.metadata['contentDetails']['duration']).seconds
+        return aniso8601.parse_duration(
+            self.metadata["contentDetails"]["duration"]
+        ).seconds
 
     @property
     def ago(self):
@@ -240,9 +269,15 @@ class Song:
             ],
             "verbose": True,
         }
-        print(ydl_options)
+        logger.debug(
+            "utils/voice/download: Downloading song", song=self.url, server=self.server
+        )
         with youtube_dl.YoutubeDL(ydl_options) as ydl:
-            print("Downloaded to", self.path)
+            logger.info(
+                "utils/voice/download: Downloaded to",
+                path=self.path,
+                server=self.server,
+            )
             ydl.download([self.url])
             self.is_downloaded = True
 
@@ -268,7 +303,7 @@ class Song:
         await self.channel.send(embed=embed)
 
     async def play(self):
-        print("Playing", self.path)
+        logger.info("utils/voice/play: Playing", path=self.path, server=self.server)
         await self.get_metadata()
         await self.channel.send(embed=self.now_playing_embed)
         await self.server.connect()

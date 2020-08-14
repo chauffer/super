@@ -2,7 +2,10 @@ import time
 import aiohttp
 from discord.ext import commands
 from discord import Embed
+import structlog
 from super.utils import fuz, owoify
+
+logger = structlog.getLogger(__name__)
 
 
 class Astro(commands.Cog):
@@ -28,6 +31,7 @@ class Astro(commands.Cog):
         self.api = "http://horoscope-api.herokuapp.com/horoscope/{when}/{sunsign}"
 
     async def _get_sunsign(self, sunsign, when):
+        logger.debug("cogs/astro/_get_sunsign: Fetching", sunsign=sunsign, when=when)
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 self.api.format(sunsign=sunsign, when=when),
@@ -41,6 +45,7 @@ class Astro(commands.Cog):
             message = ctx.message.content.split(" ")
 
             if len(message) >= 2:
+                logger.debug("cogs/astro/_astro: Fetching", message=message[1])
                 sunsign = fuz(message[1], self.sunsigns, threshold=1)
             else:
                 return await ctx.message.channel.send(
@@ -53,6 +58,7 @@ class Astro(commands.Cog):
 
             title = f"{when}'s horoscope for {sunsign}"
             horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+            logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
             if owo:
                 horoscope = owoify(horoscope)
                 title = owoify(title)

@@ -1,13 +1,17 @@
 import asyncio
+
 import aioredis
+import structlog
+
 from . import settings
 
 conn = None
+logger = structlog.getLogger(__name__)
 
 
 class SuperRedis:
     def __init__(self, host=None, port=6379):
-        print("SuperRedis: connecting...")
+        logger.debug("utils/superredis/connect: connecting...", host=host, port=port)
         self.host, self.port = host, port
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect())
@@ -16,7 +20,9 @@ class SuperRedis:
         self.pool = await aioredis.create_pool(
             (self.host, self.port), minsize=50, maxsize=100,
         )
-        print("SuperRedis: connected!")
+        logger.info(
+            "utils/superredis/connect: connected!", host=self.host, port=self.port
+        )
 
     async def write(self, slug, value):
         slug = self.slug_to_str(slug)

@@ -5,12 +5,15 @@ from contextlib import suppress
 
 import aniso8601
 import discord
+import structlog
 from discord.ext import commands
 from fuzzywuzzy import process
 from super.settings import SUPER_QUEUE_PAGINATION, SUPER_MAX_YOUTUBE_LENGTH
 from super.utils import get_user_voice_channel, prompt_video_choice
 from super.utils.voice import Servers, Song
 from super.utils.youtube import YT
+
+logger = structlog.getLogger(__name__)
 
 
 class Youtube(commands.Cog):
@@ -68,6 +71,9 @@ class Youtube(commands.Cog):
             if self.S[ctx.message.guild.id].is_connected:
                 return await self.S[ctx.message.guild.id].disconnect()
         except:
+            logger.error(
+                "cogs/youtube/leave: Error", error=traceback.format_exc(), server=server
+            )
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
             )
@@ -80,7 +86,17 @@ class Youtube(commands.Cog):
         try:
             assert 0 <= int(message[0]) <= 100
             server.volume = int(message[0])
+            logger.info(
+                "cogs/youtube/volume: Volume changed",
+                volume=server.volume,
+                server=server,
+            )
         except:
+            logger.error(
+                "cogs/youtube/volume: Volume change failed",
+                error=traceback.format_exc(),
+                server=server,
+            )
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
             )
@@ -89,8 +105,18 @@ class Youtube(commands.Cog):
         try:
             server.voice_client.stop()
             await ctx.message.channel.send("skipping")
+            logger.info(
+                "cogs/youtube/skip: Skipped song",
+                song=server.playing.url,
+                server=server,
+            )
             await server.play_next()
         except:
+            logger.error(
+                "cogs/youtube/skip: Unable to skip song",
+                error=traceback.format_exc(),
+                server=server,
+            )
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
             )
@@ -106,10 +132,13 @@ class Youtube(commands.Cog):
         try:
             return await server.current_song(ctx)
         except:
+            logger.error(
+                "cogs/youtube/np: Error", error=traceback.format_exc(), server=server
+            )
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
             )
-    
+
     async def search(self, ctx, server, message, lucky=False):
         if not len(message):
             return
@@ -138,12 +167,15 @@ class Youtube(commands.Cog):
             )
 
         message = await ctx.message.channel.send(embed=embed)
+        logger.debug(
+            "cogs/youtube/search: Prompting user for video choice", server=server
+        )
         choice = await prompt_video_choice(message, ctx, len(results[:5]))
         await message.delete()
         await server.queue(
             Song("https://youtube.com/watch?v=" + results[choice]["id"], server, ctx)
         )
-    
+
     async def remove(self, ctx, server, message):
         pos = int(message[0])
         if pos > 0:
@@ -151,6 +183,7 @@ class Youtube(commands.Cog):
                 return await ctx.message.channel.send("you cannot delete this song")
             with suppress(IndexError):
                 server._queue.pop(pos - 1)
+                logger.info("cogs/youtube/remove: Removed", pos=pos, server=server)
         return await ctx.message.channel.send("deleted")
 
     async def mute(self, ctx, server, message):
@@ -194,8 +227,8 @@ class Youtube(commands.Cog):
         yt_videoid = re.findall(
             r"youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})", " ".join(message),
         )
-        print(yt_videoid)
         if yt_videoid is not None and len(yt_videoid):
+            logger.info("cogs/youtube/yt: Queueing", video_id=yt_videoid, server=server)
             return await server.queue(
                 Song("https://youtube.com/watch?v=" + yt_videoid[0], server, ctx)
             )
@@ -212,7 +245,7 @@ class Youtube(commands.Cog):
                 f"{message[1]}? assuming you meant _{good_word}_..."
             )
             return await self.command(good_word)(ctx, server, message[2:])
-        
+
         return await self.search(ctx, server, message[1:], lucky=True)
 
 
