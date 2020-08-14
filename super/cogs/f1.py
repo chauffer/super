@@ -3,8 +3,11 @@ import ics
 from ago import human
 from arrow import Arrow
 from discord.ext import commands
+import structlog
 from super.settings import SUPER_TIMEZONE, SUPER_F1_CALENDAR
 from contextlib import suppress
+
+logger = structlog.getLogger(__name__)
 
 
 class F1(commands.Cog):
@@ -24,6 +27,9 @@ class F1(commands.Cog):
             return self._calendar
 
     async def get_events(self, num=10, page=0, more=False, weekend=False):
+        logger.debug(
+            "cogs/f1/get_events: Fetching", num=num, more=more, weekend=weekend
+        )
         lines = []
         calendar = await self.calendar()
         start = min(page * num, len(calendar.events) - num)
@@ -45,6 +51,7 @@ class F1(commands.Cog):
                 break
         if more and len(calendar.events) - start - num:
             lines.append(f"...and {len(calendar.events) - start - num} more")
+        logger.info("cogs/f1/get_events: Fetched", result=lines)
         return lines
 
     @commands.command(pass_context=True)

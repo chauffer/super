@@ -12,3 +12,5 @@ fuzzywuzzy[speedup]
 youtube-dl
 aioyoutube
 aniso8601
+structlog
+colorama

@@ -1,6 +1,9 @@
 from discord.ext import commands
 from aiogoogletrans import Translator
 from aiogoogletrans.constants import LANGUAGES
+import structlog
+
+logger = structlog.getLogger(__name__)
 
 
 class Translate(commands.Cog):
@@ -32,8 +35,15 @@ class Translate(commands.Cog):
             del words[0:2]
 
         async with ctx.message.channel.typing():
+            logger.debug("cogs/translate/t: Translating", words=" ".join(words))
             out = await Translator().translate(
                 text=" ".join(words), src=config["from"], dest=config["to"],
+            )
+            logger.info(
+                "cogs/translate/t: Translated",
+                src=out.src,
+                dest=out.dest,
+                text=out.text,
             )
             return await ctx.message.channel.send(
                 f"**{out.src}**→**{out.dest}** - {out.text}"
