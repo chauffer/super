@@ -35,7 +35,8 @@ class F1(commands.Cog):
         start = min(page * num, len(calendar.events) - num)
         for event in sorted(calendar.events, key=lambda x: x.begin)[start:]:
             if event.end > Arrow.now() > event.begin:
-                lines.append(f"**{event.name}** ongoing")
+                event_end = human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
+                lines.append(f"**{event.name}** ongoing, ending in {event_end}")
             elif event.begin > Arrow.now():
                 local_time = event.begin.to(SUPER_TIMEZONE)
                 lines.append(
@@ -45,7 +46,7 @@ class F1(commands.Cog):
                         local_time.strftime("%d %b @ %H:%M"),
                     )
                 )
-                if weekend and local_time.isoweekday() == 7:
+                if weekend and local_time.isoweekday() in (7, 1):
                     break
             if len(lines) >= num:
                 break
