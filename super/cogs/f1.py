@@ -23,7 +23,7 @@ class F1(commands.Cog):
         except:
             return self._calendar
 
-    async def get_events(self, num, page=0, more=False):
+    async def get_events(self, num=10, page=0, more=False, weekend=False):
         lines = []
         calendar = await self.calendar()
         start = min(page * num, len(calendar.events) - num)
@@ -39,19 +39,29 @@ class F1(commands.Cog):
                         local_time.strftime("%d %b @ %H:%M"),
                     )
                 )
+                if weekend and local_time.isoweekday() == 7:
+                    break
             if len(lines) >= num:
                 break
         if more and len(calendar.events) - start - num:
             lines.append(f"...and {len(calendar.events) - start - num} more")
         return lines
 
-    @commands.command(no_pm=True, pass_context=True)
+    @commands.command(pass_context=True)
+    async def f1(self, ctx):
+        """**.f1** - Formula 1 sessions this weekend"""
+        async with ctx.message.channel.typing():
+            return await ctx.message.channel.send(
+                "\n".join(await self.get_events(weekend=True))
+            )
+
+    @commands.command(pass_context=True)
     async def f1ns(self, ctx):
         """**.f1ns** - Formula 1 next session"""
         async with ctx.message.channel.typing():
             return await ctx.message.channel.send("\n".join(await self.get_events(1)))
 
-    @commands.command(no_pm=True, pass_context=True)
+    @commands.command(pass_context=True)
     async def f1ls(self, ctx):
         """**.f1ls** [page] - Formula 1 list sessions"""
         page = 1
@@ -59,7 +69,7 @@ class F1(commands.Cog):
             with suppress(Exception):
                 page = int(ctx.message.content.split()[1])
 
-        events = "\n".join(await self.get_events(10, page, more=True))
+        events = "\n".join(await self.get_events(page=page, more=True))
         async with ctx.message.channel.typing():
             return await ctx.message.channel.send(events)
 
