@@ -14,3 +14,4 @@ aioyoutube
 aniso8601
 structlog
 colorama
+aiocache[redis]
