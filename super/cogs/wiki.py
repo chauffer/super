@@ -52,9 +52,7 @@ class Wiki(commands.Cog):
                 "sroffset": offset,
             },
         ) as response:
-            r = (await response.json())["query"]["search"]
-
-        return [(self._get_description(i), await self._get_url(i["title"],)) for i in r]
+            return (await response.json())["query"]["search"]
 
     @commands.command(no_pm=True, pass_context=True)
     async def w(self, ctx):
@@ -69,13 +67,11 @@ class Wiki(commands.Cog):
             k = await R.incr(slug, 3600) - 1
 
             try:
-                description, url = (await self.wiki(words, 10 * (k // 10)))[k]
+                result = (await self.wiki(words, 10 * (k // 10)))[k]
             except IndexError:
                 return await ctx.message.channel.send("?")
 
-            return await ctx.message.channel.send(
-                "\n".join(["<" + url + ">", description])
-            )
+            return await ctx.message.channel.send(await self._get_url(result["title"]))
 
 
 def setup(bot):
