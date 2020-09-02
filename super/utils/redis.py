@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Iterable
 
 import aioredis
 import structlog
@@ -42,6 +43,14 @@ class SuperRedis:
                 await redis.execute("expire", slug, time * 1000)
         return locked
 
+    async def incr(self, slug, time=None):
+        slug = self.slug_to_str(slug)
+        with await self.pool as redis:
+            val = await redis.execute("incr", slug)
+            if time:
+                await redis.execute("expire", slug, time)
+        return val
+
     def get_slug(self, ctx, command=None, id=None):
         slug = [
             ctx.message.author.guild.id,
@@ -53,6 +62,6 @@ class SuperRedis:
 
     @staticmethod
     def slug_to_str(slug):
-        if type(slug) == list:
+        if isinstance(slug, Iterable):
             slug = ":".join([str(o) for o in slug])
         return "super:" + slug
