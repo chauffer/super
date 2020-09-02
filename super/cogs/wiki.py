@@ -66,13 +66,12 @@ class Wiki(commands.Cog):
                 b64encode(" ".join(words).encode()).decode(),
                 ctx.message.channel.id,
             )
-
             k = await R.incr(slug, 3600) - 1
 
             try:
-                description, url = (await self.wiki(words))[k]
-            except IndexError:
                 description, url = (await self.wiki(words, 10 * (k // 10)))[k]
+            except IndexError:
+                return await ctx.message.channel.send("?")
 
             return await ctx.message.channel.send(
                 "\n".join(["<" + url + ">", description])
