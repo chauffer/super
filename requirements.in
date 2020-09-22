@@ -1,17 +1,19 @@
-aiohttp
-asyncio
-discord.py[voice]
-aioredis
--e git+git://github.com/chauffer/cobe.git#egg=cobe
-humanize
-aiogoogletrans
-ics
-arrow
 ago
-fuzzywuzzy[speedup]
-youtube-dl
+aiocache[redis]
+aiogoogletrans
+aiohttp
+aioredis
 aioyoutube
 aniso8601
-structlog
+arrow
+asyncio
 colorama
-aiocache[redis]
+discord.py[voice]
+-e git+git://github.com/chauffer/cobe.git#egg=cobe
+fuzzywuzzy[speedup]
+humanize
+ics
+pytest
+pytest-asyncio
+structlog
+youtube-dl
