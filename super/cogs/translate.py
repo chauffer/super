@@ -3,6 +3,8 @@ from aiogoogletrans import Translator
 from aiogoogletrans.constants import LANGUAGES
 import structlog
 
+from super.utils import translate
+
 logger = structlog.getLogger(__name__)
 
 
@@ -12,41 +14,17 @@ class Translate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @staticmethod
-    def _is_language(text):
-        return text in LANGUAGES.keys()
-
     @commands.command(no_pm=False, pass_context=True, name="t")
     async def t(self, ctx):
         """**.t** [from lang] [to lang] <sentence>. Auto detects by default."""
         words = ctx.message.content.split(" ")[1:]
         if not words:
-            return
-
-        config = {"from": "auto", "to": "en"}
-        for _ in range(2):
-            if len(words) < 3:
-                continue
-            setting, value = words[0], words[1]
-            if words[0] not in ("from", "to") or not self._is_language(value):
-                continue
-
-            config[setting] = value
-            del words[0:2]
-
-        async with ctx.message.channel.typing():
-            logger.debug("cogs/translate/t: Translating", words=" ".join(words))
-            out = await Translator().translate(
-                text=" ".join(words), src=config["from"], dest=config["to"],
-            )
-            logger.info(
-                "cogs/translate/t: Translated",
-                src=out.src,
-                dest=out.dest,
-                text=out.text,
-            )
             return await ctx.message.channel.send(
-                f"**{out.src}**→**{out.dest}** - {out.text}"
+                "**.t** [from lang] [to lang] <sentence>. Auto detects by default."
+            )
+        async with ctx.message.channel.typing():
+            return await ctx.message.channel.send(
+                await translate.translate(words)
             )
 
 
