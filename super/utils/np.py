@@ -6,49 +6,85 @@ from super import settings
 from super.utils import R
 
 
-def lastfm_response_to_song(response):
-    song = dict(is_playing=False)
-    try:
-        track = response["recenttracks"]["track"][0]
-        song["artist"] = track["artist"]["#text"]
-        song["album"] = track["album"]["#text"] or None
-        song["name"] = track["name"]
+class Np:
 
-        if "@attr" in track and "nowplaying" in track["@attr"]:
-            song["is_playing"] = True
-    except (KeyError, IndexError):
-        song = dict(is_playing=True, artist=None, album=None, name=None)
-    return song
+    def __init__(self):
+        self.url = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks"
+        self.session = aiohttp.ClientSession()
 
-def lastfm_song_to_str(lfm, nick, song):
-    nick = f"({nick})" if nick else ""
-    return " ".join(
-        [
-            f"**{lfm}**{nick}",
-            f"now playing: **{song['artist']} - {song['name']}**",
-            f"from **{song['album']}**" if song["album"] else "",
-        ]
-    )
+    def __exit__(self):
+        self.session.close()
 
-async def userid_to_lastfm(ctx, member):
-    lfm = await R.read(R.get_slug(ctx, "np", id=member.id))
-    return [lfm, member.display_name]
+    def lastfm_response_to_song(self, response):
+        song = dict(is_playing=False)
+        try:
+            track = response["recenttracks"]["track"][0]
+            song["artist"] = track["artist"]["#text"]
+            song["album"] = track["album"]["#text"] or None
+            song["name"] = track["name"]
 
-async def lastfm(session, lfm=None, ctx=None, member=None, nick=None):
-    if not lfm:
-        lfm, nick = await userid_to_lastfm(ctx, member)
-    if not lfm:
-        return
+            if "@attr" in track and "nowplaying" in track["@attr"]:
+                song["is_playing"] = True
+        except (KeyError, IndexError):
+            song = dict(is_playing=True, artist=None, album=None, name=None)
+        return song
 
-    url = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks"
-    params = dict(
-        format="json", limit=1, user=lfm, api_key=settings.SUPER_LASTFM_API_KEY
-    )
+    def lastfm_song_to_str(self, lfm, nick, song):
+        nick = f"({nick})" if nick else ""
+        return " ".join(
+            [
+                f"**{lfm}**{nick}",
+                f"now playing: **{song['artist']} - {song['name']}**",
+                f"from **{song['album']}**" if song["album"] else "",
+            ]
+        )
 
-    async with session.get(url, params=params) as response:
-        response = json.loads(await response.read())
-    song = lastfm_response_to_song(response)
-    return {
-        "song": song,
-        "formatted": lastfm_song_to_str(lfm, nick, song),
-    }
+    async def userid_to_lastfm(self, ctx, member):
+        lfm = await R.read(R.get_slug(ctx, "np", id=member.id))
+        return [lfm, member.display_name]
+
+    async def lastfm(self, lfm=None, ctx=None, member=None, nick=None):
+        if not lfm:
+            lfm, nick = await self.userid_to_lastfm(ctx, member)
+        if not lfm:
+            return
+
+        params = dict(
+            format="json", limit=1, user=lfm, api_key=settings.SUPER_LASTFM_API_KEY
+        )
+
+        async with self.session.get(self.url, params=params) as response:
+            response = json.loads(await response.read())
+        song = self.lastfm_response_to_song(response)
+        return {
+            "song": song,
+            "formatted": self.lastfm_song_to_str(lfm, nick, song),
+        }
+
+    async def np(self, ctx):
+        words = ctx.message.content.split(" ")
+        slug = R.get_slug(ctx, "np")
+        try:
+            lfm = words[1]
+            await R.write(slug, lfm)
+        except IndexError:
+            lfm = await R.read(slug)
+
+        if not lfm:
+            return f"Set an username first, e.g.: **{settings.SUPER_PREFIX}np joe**"
+        return await self.lastfm(lfm=lfm)
+
+    async def wp(self, ctx, guild_members):
+        message = ["Users playing music in this server:"]
+        tasks = []
+        for member in guild_members:
+            tasks.append(self.lastfm(self.session, ctx=ctx, member=member))
+
+        tasks = tasks[::-1]  ## Theory: this will make it ordered by join date
+
+        for data in await gather(*tasks):
+            if data and data["song"]["is_playing"]:
+                message.append(data["formatted"])
+        if len(message) == 1:
+            message.append("Nobody. :disappointed:")
+        return "\n".join(message)

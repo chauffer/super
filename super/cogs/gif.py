@@ -14,6 +14,7 @@ class Gif(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
+        self.gif = gif.Gif()
 
     def __exit__(self):
         self.session.close()
@@ -22,9 +23,7 @@ class Gif(commands.Cog):
     async def gif(self, ctx):
         """**.gif** <query> - random gif"""
         async with ctx.message.channel.typing():
-            text = ctx.message.content.split(" ", 1)[1]
-            url = await gif.get_url(self.session, text)
-            return await ctx.message.channel.send(f"**{text}**: {url}")
+            return await ctx.message.channel.send(await self.gif.chat(ctx.message.content))
 
 
 def setup(bot):

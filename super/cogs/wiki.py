@@ -13,7 +13,7 @@ class Wiki(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession()
+        self.wiki = wiki.Wiki()
 
     def __exit__(self):
         self.session.close()
@@ -30,12 +30,7 @@ class Wiki(commands.Cog):
             )
             k = await R.incr(slug, 3600) - 1
 
-            try:
-                result = (await wiki.wiki(self.session, words, 10 * (k // 10)))[k % 10]
-            except IndexError:
-                return await ctx.message.channel.send("?")
-
-            return await ctx.message.channel.send(await wiki.get_url(self.session, result["title"]))
+            return await ctx.message.channel.send(self.wiki.search(words, k))
 
 
 def setup(bot):
