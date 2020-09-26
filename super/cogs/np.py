@@ -17,14 +17,12 @@ class Np(commands.Cog):
     @commands.command(no_pm=True, pass_context=True)
     async def np(self, ctx):
         """**.np** - Now playing song from last.fm"""
-        async with ctx.message.channel.typing():
-            return await ctx.message.channel.send(self.np.np(ctx))
+        return await self.np.np(ctx)
 
     @commands.command(no_pm=True, pass_context=True, name="wp")
     async def wp(self, ctx):
         """**.wp** - Now playing, for the whole server"""
-        async with ctx.message.channel.typing():
-            return await self.np.wp(ctx, ctx.message.guild.members)
+        return await self.np.wp(ctx)
 
 
 def setup(bot):

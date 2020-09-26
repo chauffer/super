@@ -22,8 +22,7 @@ class Gif(commands.Cog):
     @commands.command(no_pm=True, pass_context=True)
     async def gif(self, ctx):
         """**.gif** <query> - random gif"""
-        async with ctx.message.channel.typing():
-            return await ctx.message.channel.send(await self.gif.chat(ctx.message.content))
+        return await self.gif.gif(ctx)
 
 
 def setup(bot):

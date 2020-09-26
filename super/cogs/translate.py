@@ -18,8 +18,7 @@ class Translate(commands.Cog):
     @commands.command(no_pm=False, pass_context=True, name="t")
     async def t(self, ctx):
         """**.t** [from lang] [to lang] <sentence>. Auto detects by default."""
-        async with ctx.message.channel.typing():
-            return await self.translate.t(ctx.message.content)
+        return await self.translate.t(ctx)
 
 
 def setup(bot):

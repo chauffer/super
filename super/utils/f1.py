@@ -10,12 +10,15 @@ logger = structlog.getLogger(__name__)
 
 
 class F1:
-
     def __init__(self):
         self._calendar = None
-        self.help = "\n".join(["**.f1** - Formula 1 sessions this weekend",
-                     "**.f1ns** - Formula 1 next session",
-                     "**.f1ls** [page] - Formula 1 list sessions"])
+        self.help = "\n".join(
+            [
+                "**.f1** - Formula 1 sessions this weekend",
+                "**.f1ns** - Formula 1 next session",
+                "**.f1ls** [page] - Formula 1 list sessions",
+            ]
+        )
 
     async def get_calendar(self):
         try:
@@ -54,18 +57,28 @@ class F1:
         logger.info("utils/f1/get_events: Fetched", result=lines)
         return lines
 
-    async def f1(self, msg):
-        if len(msg) > 1:
-            return self.help
-        return "\n".join(await self.get_events(weekend=True))
+    async def f1(self, ctx):
+        async with ctx.message.channel.typing():
+            msg = ctx.message.content.split()
+            if len(msg) > 1:
+                return await ctx.message.channel.send(self.help)
+            return await ctx.message.channel.send(
+                "\n".join(await self.get_events(weekend=True))
+            )
 
-    async def f1ls(self, msg):
-        if len(msg) > 1:
-            return self.help
-        return "\n".join(await self.get_events(1))
+    async def f1ls(self, ctx):
+        async with ctx.message.channel.typing():
+            msg = ctx.message.content.split()
+            if len(msg) > 1:
+                return await ctx.message.channel.send(self.help)
+            return await ctx.message.channel.send("\n".join(await self.get_events(1)))
 
-    async def f1ns(self, msg):
-        page = 1
-        with suppress(Exception):
-            page = int(msg[1])
-        return "\n".join(await self.get_events(page=page, more=True))
+    async def f1ns(self, ctx):
+        async with ctx.message.channel.typing():
+            msg = ctx.message.content.split()
+            page = 1
+            with suppress(Exception):
+                page = int(msg[1])
+            return await ctx.message.channel.send(
+                "\n".join(await self.get_events(page=page, more=True))
+            )

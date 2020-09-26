@@ -16,20 +16,17 @@ class F1(commands.Cog):
     @commands.command(pass_context=True)
     async def f1(self, ctx):
         """**.f1** - Formula 1 sessions this weekend"""
-        async with ctx.message.channel.typing():
-            return await self.f1.f1(ctx.message.content)
+        return await self.f1.f1(ctx)
 
     @commands.command(pass_context=True)
     async def f1ns(self, ctx):
         """**.f1ns** - Formula 1 next session"""
-        async with ctx.message.channel.typing():
-            return await self.f1.f1ns(ctx.message.content)
+        return await self.f1.f1ns(ctx)
 
     @commands.command(pass_context=True)
     async def f1ls(self, ctx):
         """**.f1ls** [page] - Formula 1 list sessions"""
-        async with ctx.message.channel.typing():
-            return await self.f1.f1ls(ctx.message.content)
+        return await self.f1.f1ls(ctx)
 
 
 def setup(bot):

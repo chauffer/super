@@ -7,7 +7,6 @@ from super.utils import R
 
 
 class Np:
-
     def __init__(self):
         self.url = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks"
         self.session = aiohttp.ClientSession()
@@ -62,29 +61,35 @@ class Np:
         }
 
     async def np(self, ctx):
-        words = ctx.message.content.split(" ")
-        slug = R.get_slug(ctx, "np")
-        try:
-            lfm = words[1]
-            await R.write(slug, lfm)
-        except IndexError:
-            lfm = await R.read(slug)
+        async with ctx.message.channel.typing():
+            words = ctx.message.content.split(" ")
+            slug = R.get_slug(ctx, "np")
+            try:
+                lfm = words[1]
+                await R.write(slug, lfm)
+            except IndexError:
+                lfm = await R.read(slug)
 
-        if not lfm:
-            return f"Set an username first, e.g.: **{settings.SUPER_PREFIX}np joe**"
-        return await self.lastfm(lfm=lfm)
+            if not lfm:
+                return await ctx.message.channel.send(
+                    f"Set an username first, e.g.: **{settings.SUPER_PREFIX}np joe**"
+                )
+            return await ctx.message.channel.send(
+                (await self.lastfm(lfm=lfm))["formatted"]
+            )
 
-    async def wp(self, ctx, guild_members):
-        message = ["Users playing music in this server:"]
-        tasks = []
-        for member in guild_members:
-            tasks.append(self.lastfm(self.session, ctx=ctx, member=member))
+    async def wp(self, ctx):
+        async with ctx.message.channel.typing():
+            message = ["Users playing music in this server:"]
+            tasks = []
+            for member in ctx.message.guild.members:
+                tasks.append(self.lastfm(ctx=ctx, member=member))
 
-        tasks = tasks[::-1]  ## Theory: this will make it ordered by join date
+            tasks = tasks[::-1]  ## Theory: this will make it ordered by join date
 
-        for data in await gather(*tasks):
-            if data and data["song"]["is_playing"]:
-                message.append(data["formatted"])
-        if len(message) == 1:
-            message.append("Nobody. :disappointed:")
-        return "\n".join(message)
+            for data in await gather(*tasks):
+                if data and data["song"]["is_playing"]:
+                    message.append(data["formatted"])
+            if len(message) == 1:
+                message.append("Nobody. :disappointed:")
+            return await ctx.message.channel.send("\n".join(message))

@@ -8,7 +8,6 @@ logger = structlog.getLogger(__name__)
 
 
 class Gif:
-
     def __init__(self):
         self.api = "https://rightgif.com/search/web"
         self.session = aiohttp.ClientSession()
@@ -34,12 +33,13 @@ class Gif:
             logger.info("utils/gif/get_url: Fetched", url=data["url"])
             return data["url"]
 
-    async def chat(self, msg):
-        message = msg.split()
-        if len(message < 2):
-            return self.help
-        url = await self.get_url(message[1])
-        if self.url_valid(url):
-            return url
-        else:
-            return "no result"
+    async def gif(self, ctx):
+        async with ctx.message.channel.typing():
+            message = ctx.message.content.split()
+            if len(message) < 2:
+                return await ctx.message.channel.send(self.help)
+            url = await self.get_url(message[1])
+            if await self.url_valid(url):
+                return await ctx.message.channel.send(url)
+            else:
+                return await ctx.message.channel.send("no result")

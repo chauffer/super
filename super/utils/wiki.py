@@ -1,5 +1,6 @@
 from aiocache import Cache, cached
 import aiohttp
+from base64 import b64encode
 from super.utils import R
 import structlog
 
@@ -48,4 +49,16 @@ class Wiki:
         except IndexError:
             return "?"
 
-        return await (await self.get_url(result["title"]))
+        return await self.get_url(result["title"])
+
+    async def w(self, ctx):
+        async with ctx.message.channel.typing():
+            words = ctx.message.content.split()[1:]
+            slug = (
+                "w",
+                b64encode(" ".join(words).encode()).decode(),
+                ctx.message.channel.id,
+            )
+            k = await R.incr(slug, 3600) - 1
+
+            return await ctx.message.channel.send(await self.search(words, k))

@@ -7,7 +7,6 @@ logger = structlog.getLogger(__name__)
 
 
 class Translate:
-
     def is_language(self, text):
         return text in LANGUAGES.keys()
 
@@ -35,8 +34,11 @@ class Translate:
         )
         return f"**{out.src}**→**{out.dest}** - {out.text}"
 
-    async def t(self, msg):
-        message = msg.split()[1:]
-        if not message:
-            return "**.t** [from lang] [to lang] <sentence>. Auto detects by default."
-        return await self.translate(message)
+    async def t(self, ctx):
+        async with ctx.message.channel.typing():
+            message = ctx.message.content.split()[1:]
+            if not message:
+                return (
+                    "**.t** [from lang] [to lang] <sentence>. Auto detects by default."
+                )
+            return await ctx.message.channel.send(await self.translate(message))
