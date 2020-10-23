@@ -16,3 +16,5 @@ jobs:
           cache_froms: chauffer/super
           tag_with_ref: true
           tag_with_sha: true
+      - name: Update deployment
+        run: curl -d "${{ secrets.SIMPLEUPDATE_TOKEN }}" -X POST https://simpleupdate.simone.sh/v0/super/super
