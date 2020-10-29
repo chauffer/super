@@ -37,7 +37,7 @@ six==1.15.0               # via ics, pynacl, python-dateutil, structlog
 structlog==20.1.0         # via -r requirements.in
 tatsu==5.5.0              # via ics
 yarl==1.5.1               # via aiohttp
-youtube-dl==2020.9.20     # via -r requirements.in
+youtube-dlc==2020.10.26   # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

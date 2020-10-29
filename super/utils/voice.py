@@ -13,7 +13,7 @@ from ago import human
 import aniso8601
 import discord
 import structlog
-import youtube_dl
+import youtube_dlc as youtube_dl
 from super.settings import SUPER_HELP_COLOR
 from super.settings import SUPER_QUEUE_PAGINATION as S_Q_P
 from super.settings import SUPER_YOUTUBE_API_KEY
