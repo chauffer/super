@@ -1,11 +1,14 @@
+from contextlib import suppress
+
 import aiohttp
 import ics
 from ago import human
 from arrow import Arrow
-from discord.ext import commands
+
 import structlog
-from super.settings import SUPER_TIMEZONE, SUPER_F1_CALENDAR
-from contextlib import suppress
+from discord.ext import commands
+from super.settings import SUPER_F1_CALENDAR, SUPER_TIMEZONE
+from super.utils import R
 
 logger = structlog.getLogger(__name__)
 
@@ -31,13 +34,18 @@ class F1(commands.Cog):
             "cogs/f1/get_events: Fetching", num=num, more=more, weekend=weekend
         )
         lines = []
-        calendar = await self.calendar()
-        start = min(page * num, len(calendar.events) - num)
-        for event in sorted(calendar.events, key=lambda x: x.begin)[start:]:
-            if event.end > Arrow.now() > event.begin:
-                event_end = human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
-                lines.append(f"**{event.name}** ongoing, ending in {event_end}")
-            elif event.begin > Arrow.now():
+        timeline = list((await self.calendar()).timeline.start_after(Arrow.now()))
+        start = min(page * num, len(timeline) - num)
+        for event in timeline[start:]:
+
+            # ongoing event
+            if event.begin < Arrow.now():
+                lines.append(
+                    f'**{event.name}** ongoing, ending' +
+                    human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
+                )
+
+            else:
                 local_time = event.begin.to(SUPER_TIMEZONE)
                 lines.append(
                     "**{0}** {1}, {2}".format(
@@ -50,8 +58,8 @@ class F1(commands.Cog):
                     break
             if len(lines) >= num:
                 break
-        if more and len(calendar.events) - start - num:
-            lines.append(f"...and {len(calendar.events) - start - num} more")
+        if more and len(timeline) - start - num:
+            lines.append(f"...and {len(timeline) - start - num} more")
         logger.info("cogs/f1/get_events: Fetched", result=lines)
         return lines
 
@@ -77,7 +85,7 @@ class F1(commands.Cog):
             with suppress(Exception):
                 page = int(ctx.message.content.split()[1])
 
-        events = "\n".join(await self.get_events(page=page, more=True))
+        events = "\n".join(await self.get_events(page=page-1, more=True))
         async with ctx.message.channel.typing():
             return await ctx.message.channel.send(events)
 
