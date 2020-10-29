@@ -15,3 +15,5 @@ aniso8601
 structlog
 colorama
 aiocache[redis]
+pyppeteer
+furl

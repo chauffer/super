@@ -27,6 +27,7 @@ extensions = [
     "super.cogs.wiki",
     "super.cogs.uptime",
     "super.cogs.steam",
+    "super.cogs.screenshot",
 ]
 
 
