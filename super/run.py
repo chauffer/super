@@ -26,6 +26,7 @@ extensions = [
     "super.cogs.youtube",
     "super.cogs.wiki",
     "super.cogs.uptime",
+    "super.cogs.steam",
 ]
 
 
