@@ -34,18 +34,17 @@ class F1(commands.Cog):
             "cogs/f1/get_events: Fetching", num=num, more=more, weekend=weekend
         )
         lines = []
-        timeline = list((await self.calendar()).timeline.start_after(Arrow.now()))
+        calendar = await self.calendar()
+        timeline = list(calendar.timeline.start_after(Arrow.now()))
         start = min(page * num, len(timeline) - num)
-        for event in timeline[start:]:
 
-            # ongoing event
-            if event.begin < Arrow.now():
-                lines.append(
-                    f'**{event.name}** ongoing, ending' +
-                    human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
-                )
+        for event in list(calendar.timeline.now()):
+            lines.append(
+                f'**{event.name}** ongoing, ending' +
+                human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
+            )
 
-            else:
+        for event in list(timeline)[start:]:
                 local_time = event.begin.to(SUPER_TIMEZONE)
                 lines.append(
                     "**{0}** {1}, {2}".format(
@@ -54,10 +53,8 @@ class F1(commands.Cog):
                         local_time.strftime("%d %b @ %H:%M"),
                     )
                 )
-                if weekend and local_time.isoweekday() in (7, 1):
+                if len(lines) >= num or weekend and local_time.isoweekday() in (7, 1):
                     break
-            if len(lines) >= num:
-                break
         if more and len(timeline) - start - num:
             lines.append(f"...and {len(timeline) - start - num} more")
         logger.info("cogs/f1/get_events: Fetched", result=lines)
