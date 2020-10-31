@@ -43,8 +43,7 @@ class Gif(commands.Cog):
         """**.gif** <query> - random gif"""
         async with ctx.message.channel.typing():
             text = ctx.message.content.split(" ", 1)[1]
-            url = await self._get_url(text)
-            return await ctx.message.channel.send(f"**{text}**: {url}")
+            return await ctx.message.channel.send(await self._get_url(text))
 
 
 def setup(bot):
