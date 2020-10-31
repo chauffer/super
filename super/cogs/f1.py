@@ -40,7 +40,7 @@ class F1(commands.Cog):
 
         for event in list(calendar.timeline.now()):
             lines.append(
-                f'**{event.name}** ongoing, ending' +
+                f"**{event.name}** ongoing, ending " +
                 human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
             )
 
