@@ -32,7 +32,7 @@ class Server:
         self.channel = None
         self._queue = []
         self.playing = None
-        self._volume = 70
+        self._volume = 20
         self.leave_task = None
 
     def __str__(self):
