@@ -37,6 +37,8 @@ class F1(commands.Cog):
         calendar = await self.calendar()
         timeline = list(calendar.timeline.start_after(Arrow.now()))
         start = min(page * num, len(timeline) - num)
+        
+        logger.info("cogs/f1/get_events", start=start, len_timeline=len(timeline))
 
         for event in list(calendar.timeline.now()):
             lines.append(
