@@ -58,10 +58,9 @@ class Markov(commands.Cog):
         brain.learn(learned_message)
 
         if mentioned or await self.should_reply(message.channel.id):
-            reply = self.sanitize_out(brain.reply(learned_message))
+            reply = self.sanitize_out(brain.reply(learned_message, loop_ms=1000))
             if reply == message.content:
                 return
-            await asyncio.sleep(0.12 * len(reply) + 1)
             return await message.channel.send(reply)
 
     @commands.command(no_pm=True, pass_context=True)
