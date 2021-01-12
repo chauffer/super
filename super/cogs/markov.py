@@ -57,11 +57,13 @@ class Markov(commands.Cog):
         learned_message = re.sub("^Super ", "", learned_message)
         brain.learn(learned_message)
 
+
         if mentioned or await self.should_reply(message.channel.id):
-            reply = self.sanitize_out(brain.reply(learned_message, loop_ms=2500))
-            if reply == message.content:
-                return
-            return await message.channel.send(reply)
+            async with message.channel.typing():
+                reply = self.sanitize_out(brain.reply(learned_message, loop_ms=2500))
+                if reply == message.content:
+                    return
+                return await message.channel.send(reply)
 
     @commands.command(no_pm=True, pass_context=True)
     async def chat(self, ctx):
