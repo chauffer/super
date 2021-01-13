@@ -70,16 +70,16 @@ class Markov(commands.Cog):
         """**.chat** <text> - Reply to a message"""
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
-            about = ctx.message.content.split(" ", 1)[1]
-            return await ctx.message.channel.send(brain.reply(about))
+            m = ctx.message.content.split(" ", 1)[1]
+            return await ctx.message.channel.send(brain.reply(m, loop_ms=2500))
 
     @commands.command(no_pm=True, pass_context=True)
     async def owochat(self, ctx):
         """**.owochat** <text> - Reply to a message, owoified"""
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
-            about = ctx.message.content.split(" ", 1)[1]
-            return await ctx.message.channel.send(owoify(brain.reply(about)))
+            m = ctx.message.content.split(" ", 1)[1]
+            return await ctx.message.channel.send(owoify(brain.reply(m, loop_ms=2500)))
 
     @commands.command(no_pm=True, pass_context=True)
     async def replyrate(self, ctx):
