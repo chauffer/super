@@ -27,7 +27,7 @@ class Screenshot(commands.Cog):
             args=['--no-sandbox', '--window-size=1920,1080', '--start-maximized'],
         )
         page = await browser.newPage()
-        await page.goto(url)
+        await page.goto(url, waitUntil=['networkidle0', 'domcontentloaded'])
         path = os.path.join(gettempdir(), next(_get_candidate_names()))
         await page.screenshot({'path': path, 'fullPage': full, 'type': 'png'})
         await browser.close()
