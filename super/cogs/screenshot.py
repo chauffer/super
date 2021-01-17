@@ -24,7 +24,7 @@ class Screenshot(commands.Cog):
 
         browser = await pyppeteer.launch(
             executablePath='/usr/bin/chromium-browser',
-            args=['--no-sandbox'],
+            args=['--no-sandbox', '--window-size=1920,1080', '--start-maximized'],
         )
         page = await browser.newPage()
         await page.goto(url)
