@@ -61,7 +61,7 @@ class Astro(commands.Cog):
 
             title = f"{when}'s horoscope for {sunsign}"
             horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
-            horoscope.replace('Ganesha', random.choice(superheroes))
+            horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
             logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
             if owo:
                 horoscope = owoify(horoscope)
