@@ -44,10 +44,8 @@ superheroes = [
     'A Teenage Mutant Ninja Turtle',
     'Thor',
     'The Wasp',
-    'Watchmen',
     'Wolverine',
     'Wonder Woman',
-    'X-Men',
     'Zatanna',
     'Zatara',
 ]
