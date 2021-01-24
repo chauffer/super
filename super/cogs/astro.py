@@ -58,11 +58,17 @@ class Astro(commands.Cog):
             when = fuz(
                 message[2] if len(message) >= 3 else "today", self.times, "today"
             )
-
             title = f"{when}'s horoscope for {sunsign}"
-            horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+
+            truth_mode = random.random() < 0.05
+            if truth_mode:
+                horoscope = "The stars and planets will not affect your life in any way."
+            else:
+                horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+                logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
+
             horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
-            logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
+
             if owo:
                 horoscope = owoify(horoscope)
                 title = owoify(title)
