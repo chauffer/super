@@ -72,7 +72,9 @@ class Astro(commands.Cog):
 
             random.seed(horoscope)
             horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
-            random.seed(self.seed)  # a caso
+            random.seed(self.seed + time.time())  # a caso
+            logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
+
             if owo:
                 horoscope = owoify(horoscope)
                 title = owoify(title)
