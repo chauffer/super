@@ -32,6 +32,7 @@ class Astro(commands.Cog):
         ]
         self.times = ("today", "week", "month", "year")
         self.api = "http://horoscope-api.herokuapp.com/horoscope/{when}/{sunsign}"
+        self.seed = random.random()
 
     async def _get_sunsign(self, sunsign, when):
         logger.debug("cogs/astro/_get_sunsign: Fetching", sunsign=sunsign, when=when)
@@ -61,7 +62,9 @@ class Astro(commands.Cog):
 
             title = f"{when}'s horoscope for {sunsign}"
             horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+            random.seed(horoscope)
             horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
+            random.seed(self.seed)  # a caso
             logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
             if owo:
                 horoscope = owoify(horoscope)
