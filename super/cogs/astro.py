@@ -63,7 +63,13 @@ class Astro(commands.Cog):
             title = f"{when}'s horoscope for {sunsign}"
             horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
             random.seed(horoscope)
-            horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
+
+            truth_mode = random.random() < 0.05
+            if truth_mode:
+                horoscope = "The stars and planets will not affect your life in any way."
+            else:
+                horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
+
             random.seed(self.seed + time.time())  # a caso
             logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
             if owo:
