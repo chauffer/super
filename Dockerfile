@@ -1,4 +1,4 @@
-FROM python:3.8-alpine
+FROM python:3.9-alpine
 
 WORKDIR /app
 COPY ./requirements.txt /app
@@ -11,7 +11,8 @@ RUN apk --virtual=.build-deps add build-base musl-dev git libffi-dev gcc &&\
 COPY . /app
 RUN pip install -e .
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 VOLUME /data
 CMD python -m super.run
 LABEL name=super version=dev
