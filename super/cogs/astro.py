@@ -30,16 +30,15 @@ class Astro(commands.Cog):
             "aquarius",
             "pisces",
         ]
-        self.times = ("today", "week", "month", "year")
-        self.api = "http://horoscope-api.herokuapp.com/horoscope/{when}/{sunsign}"
+        self.times = ("today", "yesterday", "tomorrow")
+        self.api = "https://aztro.sameerkumar.website/?sign={sunsign}&day={when}"
         self.seed = random.random()
 
     async def _get_sunsign(self, sunsign, when):
         logger.debug("cogs/astro/_get_sunsign: Fetching", sunsign=sunsign, when=when)
         async with aiohttp.ClientSession() as session:
-            async with session.get(
+            async with session.post(
                 self.api.format(sunsign=sunsign, when=when),
-                params={"t": int(time.time())},
                 timeout=5,
             ) as resp:
                 return await resp.json()
@@ -53,7 +52,7 @@ class Astro(commands.Cog):
                 sunsign = fuz(message[1], self.sunsigns, threshold=1)
             else:
                 return await ctx.message.channel.send(
-                    ".astro <sign> [**today**|week|month|year]"
+                    ".astro <sign> [**today**|yesterday|tomorrow]"
                 )
 
             when = fuz(
@@ -61,22 +60,35 @@ class Astro(commands.Cog):
             )
 
             title = f"{when}'s horoscope for {sunsign}"
-            horoscope = (await self._get_sunsign(sunsign, when))["horoscope"]
+            data = await self._get_sunsign(sunsign, when)
+            horoscope = data["description"]
             random.seed(horoscope)
 
             truth_mode = random.random() < 0.05
             if truth_mode:
                 horoscope = "The stars and planets will not affect your life in any way."
             else:
-                horoscope = horoscope.replace('Ganesha', random.choice(superheroes))
+                horoscope = horoscope.replace("Ganesha", random.choice(superheroes))
 
             random.seed(self.seed + time.time())  # a caso
+
             logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
             if owo:
                 horoscope = owoify(horoscope)
                 title = owoify(title)
+            
+            e = Embed(title=title, type="rich", description=horoscope)
 
-            return Embed(title=title, type="rich", description=horoscope)
+            if not truth_mode:
+                for key, value in data.items():
+                    if key in ("description", "current_date", "description"):
+                        continue
+                    key, value = key.lower().replace("_", " "), value.lower()
+                    if owo:
+                        key, value = owoify(key), owoify(value)
+                    e.add_field(name=key, value=value, inline=True)
+
+            return e
 
     @commands.command(no_pm=True, pass_context=True)
     async def astro(self, ctx):
