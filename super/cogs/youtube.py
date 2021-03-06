@@ -178,12 +178,14 @@ class Youtube(commands.Cog):
 
     async def remove(self, ctx, server, message):
         pos = int(message[0])
-        if pos > 0:
-            if server._queue[pos - 1].user != ctx.message.author:
-                return await ctx.message.channel.send("you cannot delete this song")
-            with suppress(IndexError):
-                server._queue.pop(pos - 1)
-                logger.info("cogs/youtube/remove: Removed", pos=pos, server=server)
+        
+        assert 1 <= pos <= 1337
+        
+        if server._queue[pos - 1].user != ctx.message.author:
+            return await ctx.message.channel.send("you cannot delete this song")
+            
+        server._queue.pop(pos - 1)
+        logger.info("cogs/youtube/remove: Removed", pos=pos, server=server)
         return await ctx.message.channel.send("deleted")
 
     async def mute(self, ctx, server, message):
