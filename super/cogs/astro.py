@@ -56,6 +56,13 @@ class Astro(commands.Cog):
         random.seed(self.seed + time.time())
         return data
 
+    def _waifu(self, data):
+        random.seed(data["description"])
+        w = random.randint(1, 100000)
+        url = f"https://thiswaifudoesnotexist.net/example-{w}.jpg"
+        random.seed(self.seed + time.time())
+        return url
+
     async def _astro(self, ctx, owo=False):
         async with ctx.message.channel.typing():
             message = ctx.message.content.split(" ")
@@ -80,6 +87,7 @@ class Astro(commands.Cog):
                 description=self._try_owo(owo, horoscope),
                 type="rich",
             )
+            e.set_thumbnail(url=self._waifu(data))
 
             if not truth_mode:
                 for key, value in data.items():
