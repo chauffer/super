@@ -6,7 +6,7 @@ import aiohttp
 import structlog
 from discord import Embed
 from discord.ext import commands
-from super.utils import fuz, owoify, superheroes
+from super.utils import fuz, owoify, sunsigns, wind_directions
 
 logger = structlog.getLogger(__name__)
 
@@ -16,20 +16,7 @@ class Astro(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.sunsigns = [
-            "aries",
-            "taurus",
-            "gemini",
-            "cancer",
-            "leo",
-            "virgo",
-            "libra",
-            "scorpio",
-            "sagittarius",
-            "capricorn",
-            "aquarius",
-            "pisces",
-        ]
+        self.sunsigns = sunsigns
         self.times = ("today", "yesterday", "tomorrow")
         self.api = "https://aztro.sameerkumar.website/?sign={sunsign}&day={when}"
         self.seed = random.random()
@@ -43,6 +30,32 @@ class Astro(commands.Cog):
             ) as resp:
                 return await resp.json()
 
+    def _time(self, message):
+        return fuz(message[2] if len(message) >= 3 else "today", self.times, "today")
+
+    def _try_truth_mode(self, data):
+        horoscope = data["description"]
+        random.seed(horoscope)
+        truth_mode = random.random() < 0.05
+        if truth_mode:
+            horoscope = "The stars and planets will not affect your life in any way."
+        random.seed(self.seed + time.time())  # a caso
+        return truth_mode, horoscope
+
+    def _try_owo(self, owo, string):
+        if owo:
+            string = owoify(string)
+        return string
+
+    def _custom_data(self, data):
+        random.seed(data["description"])
+        data["preferred_wind"] = random.choice(wind_directions)
+        data["losing_lottery_n"] = ", ".join(
+            [str(random.randint(1, 50)) for _ in range(0, 5)]
+        )
+        random.seed(self.seed + time.time())
+        return data
+
     async def _astro(self, ctx, owo=False):
         async with ctx.message.channel.typing():
             message = ctx.message.content.split(" ")
@@ -55,29 +68,18 @@ class Astro(commands.Cog):
                     ".astro <sign> [**today**|yesterday|tomorrow]"
                 )
 
-            when = fuz(
-                message[2] if len(message) >= 3 else "today", self.times, "today"
-            )
-
-            title = f"{when}'s horoscope for {sunsign}"
+            when = self._time(message)
             data = await self._get_sunsign(sunsign, when)
-            horoscope = data["description"]
-            random.seed(horoscope)
-
-            truth_mode = random.random() < 0.05
-            if truth_mode:
-                horoscope = "The stars and planets will not affect your life in any way."
-            else:
-                horoscope = horoscope.replace("Ganesha", random.choice(superheroes))
-
-            random.seed(self.seed + time.time())  # a caso
-
             logger.info("cogs/astro/_astro: Fetched", sunsign=sunsign)
-            if owo:
-                horoscope = owoify(horoscope)
-                title = owoify(title)
-            
-            e = Embed(title=title, type="rich", description=horoscope)
+
+            truth_mode, horoscope = self._try_truth_mode(data)
+            data = self._custom_data(data)
+
+            e = Embed(
+                title=self._try_owo(owo, f"{when}'s horoscope for {sunsign}"),
+                description=self._try_owo(owo, horoscope),
+                type="rich",
+            )
 
             if not truth_mode:
                 for key, value in data.items():
@@ -85,7 +87,7 @@ class Astro(commands.Cog):
                         continue
                     key, value = key.lower().replace("_", " "), value.lower()
                     if owo:
-                        key, value = owoify(key), owoify(value)
+                        key, value = self._try_owo(owo, key), self._try_owo(owo, value)
                     e.add_field(name=key, value=value, inline=True)
 
             return e
