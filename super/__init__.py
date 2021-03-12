@@ -14,34 +14,34 @@ pre_chain = [
 ]
 
 LOG_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'standard': {
-            '()': structlog.stdlib.ProcessorFormatter,
-            'processor': structlog.dev.ConsoleRenderer(colors=SUPER_DEBUG),
-            'foreign_pre_chain': pre_chain
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "standard": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(colors=SUPER_DEBUG),
+            "foreign_pre_chain": pre_chain,
         }
     },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout'
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "formatter": "standard",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
         }
     },
-    'loggers': {
-        'super': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True
+    "loggers": {
+        "super": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
         },
-        'root': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
-    }
+    },
 }
 
 logging.config.dictConfig(LOG_CONFIG)
@@ -59,7 +59,7 @@ if SUPER_DEBUG:
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True
+        cache_logger_on_first_use=True,
     )
 else:
     structlog.configure(
@@ -70,10 +70,10 @@ else:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True
+        cache_logger_on_first_use=True,
     )
