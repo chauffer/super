@@ -49,9 +49,9 @@ class Astro(commands.Cog):
 
     def _custom_data(self, data):
         random.seed(data["description"])
-        data["preferred_wind"] = random.choice(wind_directions)
-        data["losing_lottery_n"] = ", ".join(
-            [str(random.randint(1, 50)) for _ in range(0, 5)]
+        data["lucky_wind"] = random.choice(wind_directions)
+        data["unlucky_lotto"] = ", ".join(
+            [str(x) for x in random.sample(range(0, 50), 5)]
         )
         random.seed(self.seed + time.time())
         return data
