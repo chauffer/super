@@ -2,7 +2,7 @@ version: '2'
 services:
   app:
     build: .
-    image: chauffer/super
+    image: quay.io/sim/super
     env_file:
       - .env
     volumes:
