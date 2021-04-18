@@ -34,8 +34,7 @@ class Markov(commands.Cog):
 
     def sanitize_out(self, message):
         replacements = {
-            "@here": "**@**here",
-            "@everyone": "**@**everyone",
+            "@": "**@**",
         }
         for key, val in replacements.items():
             message = message.replace(key, val)
