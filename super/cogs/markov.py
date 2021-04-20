@@ -32,13 +32,19 @@ class Markov(commands.Cog):
     async def should_reply(self, channel):
         return random.randint(0, 100) < await self._get_replyrate(channel)
 
-    def sanitize_out(self, message):
+    def sanitize_out(self, message, guild):
         replacements = {
             "@here": "**@**here",
             "@everyone": "**@**everyone",
         }
         for key, val in replacements.items():
             message = message.replace(key, val)
+
+        for mention in re.finditer(r"<@!?([0-9]*)>", message):
+            member = guild.get_member(int(mention.group(1)))
+            if member:
+                message = re.sub(mention.group(), member.display_name, message)
+
         return message
 
     @commands.Cog.listener()
@@ -57,10 +63,11 @@ class Markov(commands.Cog):
         learned_message = re.sub("^Super ", "", learned_message)
         brain.learn(learned_message)
 
-
         if mentioned or await self.should_reply(message.channel.id):
             async with message.channel.typing():
-                reply = self.sanitize_out(brain.reply(learned_message, loop_ms=2500))
+                reply = self.sanitize_out(
+                    brain.reply(learned_message, loop_ms=2500), message.guild
+                )
                 if reply == message.content:
                     return
                 return await message.channel.send(reply)
