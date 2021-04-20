@@ -32,6 +32,9 @@ class Markov(commands.Cog):
     async def should_reply(self, channel):
         return random.randint(0, 100) < await self._get_replyrate(channel)
 
+    def reply(self, message, guild):
+        return self.sanitize_out(brain.reply(message, loop_ms=2500), guild)
+
     def sanitize_out(self, message, guild):
         replacements = {
             "@here": "**@**here",
@@ -65,9 +68,7 @@ class Markov(commands.Cog):
 
         if mentioned or await self.should_reply(message.channel.id):
             async with message.channel.typing():
-                reply = self.sanitize_out(
-                    brain.reply(learned_message, loop_ms=2500), message.guild
-                )
+                reply = self.reply(learned_message, message.guild)
                 if reply == message.content:
                     return
                 return await message.channel.send(reply)
@@ -78,7 +79,7 @@ class Markov(commands.Cog):
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
             m = ctx.message.content.split(" ", 1)[1]
-            return await ctx.message.channel.send(brain.reply(m, loop_ms=2500))
+            return await ctx.message.channel.send(self.reply(m, ctx.message.guild))
 
     @commands.command(no_pm=True, pass_context=True)
     async def owochat(self, ctx):
@@ -86,7 +87,9 @@ class Markov(commands.Cog):
         async with ctx.message.channel.typing():
             brain = self._get_brain(ctx.message.author.guild.id)
             m = ctx.message.content.split(" ", 1)[1]
-            return await ctx.message.channel.send(owoify(brain.reply(m, loop_ms=2500)))
+            return await ctx.message.channel.send(
+                owoify(self.reply(m, ctx.message.guild))
+            )
 
     @commands.command(no_pm=True, pass_context=True)
     async def replyrate(self, ctx):
