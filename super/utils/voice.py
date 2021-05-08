@@ -54,11 +54,13 @@ class Server:
     async def queue(self, song):
         await song.get_metadata()
 
-        if song.metadata['snippet']['liveBroadcastContent'] != 'none':
+        if song.metadata["snippet"]["liveBroadcastContent"] != "none":
             return await song.channel.send("cannot queue livestreams")
 
         if len(song) > SUPER_MAX_YOUTUBE_LENGTH:
-            return await song.channel.send(f"song is longer than {SUPER_MAX_YOUTUBE_LENGTH} seconds")
+            return await song.channel.send(
+                f"song is longer than {SUPER_MAX_YOUTUBE_LENGTH} seconds"
+            )
 
         self._queue.append(song)
         logger.info("utils/voice/queue: Queued", song=song.url, server=song.server)
@@ -296,7 +298,10 @@ class Song:
 
     async def display_queued(self):
         embed = discord.Embed(
-            title=self.title, url=self.url, color=SUPER_HELP_COLOR, type="rich",
+            title=self.title,
+            url=self.url,
+            color=SUPER_HELP_COLOR,
+            type="rich",
         )
         embed.set_author(name=f"queued in position #{len(self.server._queue)}...")
         embed.set_thumbnail(url=self.thumbnail)

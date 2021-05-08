@@ -1,4 +1,3 @@
-
 import os
 import traceback
 from tempfile import _get_candidate_names, gettempdir
@@ -20,22 +19,21 @@ class Screenshot(commands.Cog):
         self.bot = bot
 
     async def _screenshot(self, url, client, full=False):
-        url = furl(url).add({'on_behalf_of_discord_clientid': client}).url
+        url = furl(url).add({"on_behalf_of_discord_clientid": client}).url
 
         browser = await pyppeteer.launch(
-            executablePath='/usr/bin/chromium-browser',
-            args=['--no-sandbox', '--window-size=1920,1080', '--start-maximized'],
+            executablePath="/usr/bin/chromium-browser",
+            args=["--no-sandbox", "--window-size=1920,1080", "--start-maximized"],
         )
         page = await browser.newPage()
-        await page.setViewport({'width': 1920, 'height': 1080})
-        await page.goto(url, waitUntil=['networkidle0', 'domcontentloaded'])
+        await page.setViewport({"width": 1920, "height": 1080})
+        await page.goto(url, waitUntil=["networkidle0", "domcontentloaded"])
         path = os.path.join(gettempdir(), next(_get_candidate_names()))
-        await page.screenshot({'path': path, 'fullPage': full, 'type': 'png'})
+        await page.screenshot({"path": path, "fullPage": full, "type": "png"})
         await browser.close()
 
         with open(path, "rb") as f:
-            return path, File(f, filename=f'screenshot_{client}.png')
-
+            return path, File(f, filename=f"screenshot_{client}.png")
 
     @commands.command(no_pm=True, pass_context=True)
     async def screenshot(self, ctx):
@@ -59,6 +57,7 @@ class Screenshot(commands.Cog):
             msg = await ctx.message.channel.send(file=file)
             os.unlink(path)
             return msg
+
 
 def setup(bot):
     bot.add_cog(Screenshot(bot))

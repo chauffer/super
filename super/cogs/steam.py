@@ -1,4 +1,3 @@
-
 import random
 
 import aiohttp
@@ -14,16 +13,16 @@ class Steam(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = 'https://api.steampowered.com/ISteamApps/GetAppList/v0002/'
-        self.link = 'https://store.steampowered.com/app/'
+        self.api = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/"
+        self.link = "https://store.steampowered.com/app/"
 
     @cached(cache=Cache.REDIS, ttl=3600, endpoint=R.host, port=R.port)
     async def games(self):
         async with aiohttp.ClientSession() as session:
             async with session.get(self.api, timeout=5) as r:
                 return {
-                    game['appid']: game['name']
-                    for game in (await r.json())['applist']['apps']
+                    game["appid"]: game["name"]
+                    for game in (await r.json())["applist"]["apps"]
                 }
 
     @cached(cache=Cache.REDIS, ttl=86400, endpoint=R.host, port=R.port)
@@ -34,7 +33,6 @@ class Steam(commands.Cog):
             return False
         return list(games.keys())[list(games.values()).index(game)]
 
-
     @commands.command(pass_context=True)
     async def steam(self, ctx):
         """**.steam** <name> - Show the store page for a game"""
@@ -42,12 +40,12 @@ class Steam(commands.Cog):
             if len(ctx.message.content.split()) == 1:
                 return await ctx.message.channel.send("Usage: .steam <name>")
 
-            match = await self.fuzzy_match(ctx.message.content.split(' ', 1)[1])
+            match = await self.fuzzy_match(ctx.message.content.split(" ", 1)[1])
             if match:
                 return await ctx.message.channel.send(self.link + str(match))
 
             else:
-                return await ctx.message.channel.send('no game found :(')
+                return await ctx.message.channel.send("no game found :(")
 
 
 def setup(bot):

@@ -19,7 +19,9 @@ class SuperRedis:
 
     async def connect(self):
         self.pool = await aioredis.create_pool(
-            (self.host, self.port), minsize=50, maxsize=100,
+            (self.host, self.port),
+            minsize=50,
+            maxsize=100,
         )
         logger.info(
             "utils/superredis/connect: connected!", host=self.host, port=self.port

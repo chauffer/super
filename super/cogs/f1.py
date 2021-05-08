@@ -37,26 +37,26 @@ class F1(commands.Cog):
         calendar = await self.calendar()
         timeline = list(calendar.timeline.start_after(Arrow.now()))
         start = min(page * num, len(timeline) - num)
-        
+
         logger.info("cogs/f1/get_events", start=start, len_timeline=len(timeline))
 
         for event in list(calendar.timeline.now()):
             lines.append(
-                f"**{event.name}** ongoing, ending " +
-                human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
+                f"**{event.name}** ongoing, ending "
+                + human(event.end.to(SUPER_TIMEZONE).timestamp, precision=2)
             )
 
         for event in list(timeline)[start:]:
-                local_time = event.begin.to(SUPER_TIMEZONE)
-                lines.append(
-                    "**{0}** {1}, {2}".format(
-                        event.name,
-                        human(local_time.timestamp, precision=2),
-                        local_time.strftime("%d %b @ %H:%M"),
-                    )
+            local_time = event.begin.to(SUPER_TIMEZONE)
+            lines.append(
+                "**{0}** {1}, {2}".format(
+                    event.name,
+                    human(local_time.timestamp, precision=2),
+                    local_time.strftime("%d %b @ %H:%M"),
                 )
-                if len(lines) >= num or weekend and local_time.isoweekday() in (7, 1):
-                    break
+            )
+            if len(lines) >= num or weekend and local_time.isoweekday() in (7, 1):
+                break
         if more and len(timeline) - start - num:
             lines.append(f"...and {len(timeline) - start - num} more")
         logger.info("cogs/f1/get_events: Fetched", result=lines)
@@ -84,7 +84,7 @@ class F1(commands.Cog):
             with suppress(Exception):
                 page = int(ctx.message.content.split()[1])
 
-        events = "\n".join(await self.get_events(page=page-1, more=True))
+        events = "\n".join(await self.get_events(page=page - 1, more=True))
         async with ctx.message.channel.typing():
             return await ctx.message.channel.send(events)
 

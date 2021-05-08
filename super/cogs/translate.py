@@ -37,7 +37,9 @@ class Translate(commands.Cog):
         async with ctx.message.channel.typing():
             logger.debug("cogs/translate/t: Translating", words=" ".join(words))
             out = await Translator().translate(
-                text=" ".join(words), src=config["from"], dest=config["to"],
+                text=" ".join(words),
+                src=config["from"],
+                dest=config["to"],
             )
             logger.info(
                 "cogs/translate/t: Translated",

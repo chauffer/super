@@ -143,7 +143,7 @@ class Youtube(commands.Cog):
         if not len(message):
             return
 
-        results = (await YT().search_videos(" ".join(message), 10))
+        results = await YT().search_videos(" ".join(message), 10)
 
         if not results:
             return await ctx.message.channel.send("cannot find video")
@@ -178,12 +178,12 @@ class Youtube(commands.Cog):
 
     async def remove(self, ctx, server, message):
         pos = int(message[0])
-        
+
         assert 1 <= pos <= 1337
-        
+
         if server._queue[pos - 1].user != ctx.message.author:
             return await ctx.message.channel.send("you cannot delete this song")
-            
+
         server._queue.pop(pos - 1)
         logger.info("cogs/youtube/remove: Removed", pos=pos, server=server)
         return await ctx.message.channel.send("deleted")
@@ -227,7 +227,8 @@ class Youtube(commands.Cog):
         # this comes before checking for subcommands
         # so if any subcommands need links, this will block them from working
         yt_videoid = re.findall(
-            r"youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})", " ".join(message),
+            r"youtu(?:.*\/v\/|.*v\=|\.be\/)([A-Za-z0-9_\-]{11})",
+            " ".join(message),
         )
         if yt_videoid is not None and len(yt_videoid):
             logger.info("cogs/youtube/yt: Queueing", video_id=yt_videoid, server=server)

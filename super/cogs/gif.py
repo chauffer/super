@@ -32,7 +32,9 @@ class Gif(commands.Cog):
     async def _get_url(self, text):
         logger.debug("cogs/gif/_get_url: Searching", query=text)
         async with self.session.post(
-            "https://rightgif.com/search/web", data={"text": text}, timeout=5,
+            "https://rightgif.com/search/web",
+            data={"text": text},
+            timeout=5,
         ) as resp:
             data = await resp.json()
             logger.info("cogs/gif/_get_url: Fetched", url=data["url"])
