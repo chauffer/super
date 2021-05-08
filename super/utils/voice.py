@@ -313,7 +313,9 @@ class Song:
         await self.channel.send(embed=self.now_playing_embed)
         await self.server.connect()
         self.download()
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(self.path))
+        source = discord.PCMVolumeTransformer(
+            discord.FFmpegPCMAudio(self.path, volume=self.server.volume)
+        )
         self.server.voice_client.play(source, after=self.server.song_ended)
         self.server.voice_client.source.volume = self.server.volume
 
