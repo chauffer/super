@@ -29,7 +29,7 @@ class Server:
     def __init__(self, bot, serverid):
         self.bot = bot
         self.id = serverid
-        self.channel = None
+        self._initial_channel = None
         self._queue = []
         self.playing = None
         self._volume = 0.1
@@ -41,6 +41,16 @@ class Server:
     @property
     def voice_client(self):
         return get_voice_client(self.bot, self.id)
+
+    @property
+    def channel(self):
+        if not self.voice_client and not self._initial_channel:
+            return None
+
+        if not self.voice_client:
+            return self._initial_channel
+
+        return self.voice_client.channel
 
     def song_ended(self, error):
         with suppress(Exception):

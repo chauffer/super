@@ -221,8 +221,7 @@ class Youtube(commands.Cog):
             return await ctx.message.channel.send("join MY voice channel....")
 
         if not server.is_connected:
-            server.channel = get_user_voice_channel(ctx)
-
+            server._initial_channel = get_user_voice_channel(ctx)
         # .yt http..
         # this comes before checking for subcommands
         # so if any subcommands need links, this will block them from working
