@@ -74,13 +74,11 @@ class Youtube(commands.Cog):
             logger.error(
                 "cogs/youtube/leave: Error", error=traceback.format_exc(), server=server
             )
-            return await ctx.message.channel.send(
-                ":thinking:\n " + traceback.format_exc()
-            )
+            return await ctx.message.channel.send(":nerd:\n " + traceback.format_exc())
 
     async def volume(self, ctx, server, message):
         if not message:
-            return await ctx.message.channel.send(f"volume: **{str(server.volume)}")
+            return await ctx.message.channel.send(f"volume: **{str(server.volume)}**")
         try:
             assert 0 <= float(message[0]) <= 0.75
             server.volume = float(message[0])
@@ -95,10 +93,8 @@ class Youtube(commands.Cog):
                 error=traceback.format_exc(),
                 server=server,
             )
-            return await ctx.message.channel.send(
-                ":thinking:\n " + traceback.format_exc()
-            )
-        return await ctx.message.channel.send(f"volume: **{str(server.volume)}")
+            return await ctx.message.channel.send(":nerd:\n " + traceback.format_exc())
+        return await self.bot.add_reaction(ctx.message, ":ok:")
 
     async def skip(self, ctx, server, message):
         try:
@@ -116,9 +112,7 @@ class Youtube(commands.Cog):
                 error=traceback.format_exc(),
                 server=server,
             )
-            return await ctx.message.channel.send(
-                ":thinking:\n " + traceback.format_exc()
-            )
+            return await ctx.message.channel.send(":nerd:\n " + traceback.format_exc())
 
     async def queue(self, ctx, server, message):
         page = 1
@@ -134,9 +128,7 @@ class Youtube(commands.Cog):
             logger.error(
                 "cogs/youtube/np: Error", error=traceback.format_exc(), server=server
             )
-            return await ctx.message.channel.send(
-                ":thinking:\n " + traceback.format_exc()
-            )
+            return await ctx.message.channel.send(":nerd:\n " + traceback.format_exc())
 
     async def search(self, ctx, server, message, lucky=False):
         if not len(message):
