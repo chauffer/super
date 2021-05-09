@@ -80,9 +80,7 @@ class Youtube(commands.Cog):
 
     async def volume(self, ctx, server, message):
         if not message:
-            return await ctx.message.channel.send(
-                "volume: **" + str(server.volume) + "**"
-            )
+            return await ctx.message.channel.send(f"volume: **{str(server.volume)}")
         try:
             assert 0 <= float(message[0]) <= 0.75
             server.volume = float(message[0])
@@ -100,6 +98,7 @@ class Youtube(commands.Cog):
             return await ctx.message.channel.send(
                 ":thinking:\n " + traceback.format_exc()
             )
+        return await ctx.message.channel.send(f"volume: **{str(server.volume)}")
 
     async def skip(self, ctx, server, message):
         try:
