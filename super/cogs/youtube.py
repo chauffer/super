@@ -81,11 +81,11 @@ class Youtube(commands.Cog):
     async def volume(self, ctx, server, message):
         if not message:
             return await ctx.message.channel.send(
-                "volume: **" + str(server.volume) + "%**"
+                "volume: **" + str(server.volume) + "**"
             )
         try:
-            assert 0 <= int(message[0]) <= 100
-            server.volume = int(message[0])
+            assert 0 <= float(message[0]) <= 0.75
+            server.volume = float(message[0])
             logger.info(
                 "cogs/youtube/volume: Volume changed",
                 volume=server.volume,

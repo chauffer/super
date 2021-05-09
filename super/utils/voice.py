@@ -32,7 +32,7 @@ class Server:
         self.channel = None
         self._queue = []
         self.playing = None
-        self._volume = 20
+        self._volume = 0.2
         self.leave_task = None
 
     def __str__(self):
@@ -102,7 +102,7 @@ class Server:
     def volume(self, value):
         self._volume = value
         with suppress(Exception):
-            self.voice_client.source.volume = value / 100
+            self.voice_client.source.volume = value
 
     @property
     def _queuepages(self):
@@ -314,7 +314,7 @@ class Song:
         await self.server.connect()
         self.download()
         source = discord.PCMVolumeTransformer(
-            discord.FFmpegPCMAudio(self.path, volume=self.server.volume)
+            discord.FFmpegPCMAudio(self.path), volume=self.server.volume
         )
         self.server.voice_client.play(source, after=self.server.song_ended)
         self.server.voice_client.source.volume = self.server.volume
